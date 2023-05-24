@@ -1,0 +1,4 @@
+name: NetworkLevelling
+version: '${project.version}'
+main: me.rewind.server.Main
+api-version: 1.19
