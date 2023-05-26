@@ -5,16 +5,22 @@ import org.bukkit.entity.Player;
 
 public class Booster<T extends NetworkStatistic> {
 
+
+
 	private Player player;
 	private T statistic;
-	private int boostAmount;
+	private double boostAmount;
 	private long duration;
+	BoosterScope scope;
+	BoosterType boosterType;
 
-	public Booster(Player player, T statistic, int boostAmount, long duration) {
+	public Booster(Player player, T statistic, BoosterType boosterType, BoosterScope scope) {
 		this.player = player;
 		this.statistic = statistic;
-		this.boostAmount = boostAmount;
-		this.duration = duration;
+		this.boostAmount = boosterType.getBoostIncreasePercentage();
+		this.duration = boosterType.getBoosterTime();
+		this.scope = scope;
+		this.boosterType = boosterType;
 	}
 
 	// getters
@@ -27,12 +33,24 @@ public class Booster<T extends NetworkStatistic> {
 		return statistic;
 	}
 
-	public int getBoostAmount() {
+	public double getBoostAmount() {
 		return boostAmount;
 	}
 
 	public long getDuration() {
 		return duration;
+	}
+
+	public BoosterScope getScope() {
+		return scope;
+	}
+
+	public void setScope(BoosterScope scope) {
+		this.scope = scope;
+	}
+
+	public BoosterType getBoosterType() {
+		return boosterType;
 	}
 
 	// other methods

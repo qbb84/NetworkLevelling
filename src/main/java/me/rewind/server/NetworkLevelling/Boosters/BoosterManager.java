@@ -36,19 +36,27 @@ public class BoosterManager {
 	}
 
 	public <T extends NetworkStatistic> void activateBooster(Booster<T> booster) {
-		activeBooster = booster;
+		switch (booster.getScope()){
+			case PERSONAL:
+				activeBooster = booster;
+				GameNotifier gameNotifier = new GameNotifier();
+				gameNotifier.sendActivatedMessage(booster);
+				break;
+			case GLOBAL:
+				//TODO SETUP QUEUE OF GLOBAL BOOSTER TYPES
+				break;
+			default:
+		}
 
-		GameNotifier gameNotifier = new GameNotifier();
-		gameNotifier.sendActivatedMessage(booster);
 	}
 
-	public <T extends  Booster<?>>void sendDiscordMessage(String url, T booster){
-		DiscordNotifier boosterNotifier = new DiscordNotifier("");
-		DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject();
-		embedObject.setDescription("hi");
+	public <T extends  Booster<?>>void sendDiscordMessage(String url, T booster, DiscordWebhook.EmbedObject embedObject) {
+		DiscordNotifier boosterNotifier = new DiscordNotifier(url);
 		boosterNotifier.setEmbed(embedObject);
 		boosterNotifier.sendActivatedMessage(booster);
 	}
+
+
 
 
 
