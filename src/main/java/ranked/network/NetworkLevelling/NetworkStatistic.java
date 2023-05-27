@@ -1,4 +1,4 @@
-package me.rewind.server.NetworkLevelling;
+package ranked.network.NetworkLevelling;
 
 import org.bukkit.entity.Player;
 
@@ -28,7 +28,6 @@ public abstract class NetworkStatistic {
 
 
 	public String getStatistic() {
-		// some default implementation to get statistics
 		return null;
 	}
 

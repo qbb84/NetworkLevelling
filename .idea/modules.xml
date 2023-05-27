@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/NetworkLevelling.iml" filepath="$PROJECT_DIR$/NetworkLevelling.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RNetworkLevelling.iml" filepath="$PROJECT_DIR$/RNetworkLevelling.iml" />
     </modules>
   </component>
 </project>

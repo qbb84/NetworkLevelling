@@ -1,4 +1,4 @@
-package me.rewind.server.NetworkLevelling;
+package ranked.network.NetworkLevelling;
 
 import org.bukkit.entity.Player;
 

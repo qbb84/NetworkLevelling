@@ -1,4 +1,4 @@
-package me.rewind.server.NetworkLevelling.Boosters;
+package ranked.network.NetworkLevelling.Boosters;
 
 public enum BoosterScope {
 		PERSONAL,

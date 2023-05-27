@@ -1,4 +1,4 @@
-package me.rewind.server.NetworkLevelling.Webhooks;
+package ranked.network.NetworkLevelling.Webhooks;
 
 import org.bukkit.Color;
 
@@ -9,12 +9,8 @@ import java.lang.reflect.Array;
 import java.net.URL;
 import java.util.*;
 
-/**
- * Class used to execute Discord Webhooks with low effort
- */
+
 public class DiscordWebhook {
-
-
 
 	private final String url;
 	private String content;
@@ -23,11 +19,6 @@ public class DiscordWebhook {
 	private boolean tts;
 	private List<EmbedObject> embeds = new ArrayList<>();
 
-	/**
-	 * Constructs a new DiscordWebhook instance
-	 *
-	 * @param url The webhook URL obtained in Discord
-	 */
 	public DiscordWebhook(String url) {
 		this.url = url;
 	}

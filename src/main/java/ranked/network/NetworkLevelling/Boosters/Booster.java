@@ -1,18 +1,23 @@
-package me.rewind.server.NetworkLevelling.Boosters;
+package ranked.network.NetworkLevelling.Boosters;
 
-import me.rewind.server.NetworkLevelling.NetworkStatistic;
+import ranked.network.NetworkLevelling.NetworkStatistic;
 import org.bukkit.entity.Player;
 
 public class Booster<T extends NetworkStatistic> {
 
 
-
 	private Player player;
+
 	private T statistic;
+
 	private double boostAmount;
 	private long duration;
+
+	private long activationTime = 0;
+
 	BoosterScope scope;
 	BoosterType boosterType;
+
 
 	public Booster(Player player, T statistic, BoosterType boosterType, BoosterScope scope) {
 		this.player = player;
@@ -23,7 +28,6 @@ public class Booster<T extends NetworkStatistic> {
 		this.boosterType = boosterType;
 	}
 
-	// getters
 
 	public Player getPlayer() {
 		return player;
@@ -53,7 +57,6 @@ public class Booster<T extends NetworkStatistic> {
 		return boosterType;
 	}
 
-	// other methods
 }
 
 

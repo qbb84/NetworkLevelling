@@ -1,16 +1,12 @@
-package me.rewind.server.NetworkLevelling.Notifiers;
+package ranked.network.NetworkLevelling.Notifiers;
 
-import me.rewind.server.NetworkLevelling.Boosters.Booster;
-import me.rewind.server.NetworkLevelling.Webhooks.DiscordWebhook;
-import me.rewind.server.NetworkLevelling.NetworkStatistic;
+import ranked.network.NetworkLevelling.Boosters.Booster;
+import ranked.network.NetworkLevelling.Webhooks.DiscordWebhook;
+import ranked.network.NetworkLevelling.NetworkStatistic;
 import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.util.Arrays;
-
-/**
- * Sends a
- */
 
 public class DiscordNotifier extends DiscordWebhook implements Notifier {
 

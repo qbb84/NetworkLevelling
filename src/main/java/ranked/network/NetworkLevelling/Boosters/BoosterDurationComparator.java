@@ -1,6 +1,6 @@
-package me.rewind.server.NetworkLevelling.Boosters;
+package ranked.network.NetworkLevelling.Boosters;
 
-import me.rewind.server.NetworkLevelling.NetworkStatistic;
+import ranked.network.NetworkLevelling.NetworkStatistic;
 
 import java.util.Comparator;
 

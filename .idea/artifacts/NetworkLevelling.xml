@@ -2,7 +2,7 @@
   <artifact type="jar" name="NetworkLevelling">
     <output-path>$USER_HOME$/Documents/1.19.4 Server/1.19.4-NON BUNGIE/plugins</output-path>
     <root id="archive" name="NetworkLevelling.jar">
-      <element id="module-output" name="NetworkLevelling" />
+      <element id="module-output" name="RNetworkLevelling" />
       <element id="file-copy" path="$PROJECT_DIR$/src/main/resources/plugin.yml" />
     </root>
   </artifact>

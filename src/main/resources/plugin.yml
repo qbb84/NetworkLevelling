@@ -1,4 +1,4 @@
 name: NetworkLevelling
 version: '${project.version}'
-main: me.rewind.server.Main
+main: ranked.network.NetworkLevelling.Main
 api-version: 1.19
