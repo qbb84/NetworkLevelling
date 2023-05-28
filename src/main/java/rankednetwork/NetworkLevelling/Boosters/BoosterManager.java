@@ -119,7 +119,7 @@ public class BoosterManager {
 		}
 	}
 
-	public void create(String boosterName, String statistic, double multiplier, long duration, Player creator, BoosterTy) {
+	public void create(String boosterName, String statistic, BoosterScope boosterScope, double multiplier, long duration, Player creator) {
 
 		ConfigurationSection bSection = createdBoosters.getConfig().getConfigurationSection(boosterName);
 		if(bSection == null) {
@@ -129,8 +129,9 @@ public class BoosterManager {
 			return;
 		}
 
-		Map<String, Object> defaults = new HashMap<>();
+		Map<String, Object> defaults = new LinkedHashMap<>();
 		defaults.put("statistic", statistic);
+		defaults.put("booster_scope", boosterScope.name());
 		defaults.put("multiplier", multiplier);
 		defaults.put("duration", duration);
 
@@ -145,6 +146,38 @@ public class BoosterManager {
 				boosterName + ChatColor.GRAY +  " booster!");
 
 	}
+
+	public void create(String boosterName, String statistic, BoosterScope boosterScope, BoosterType boosterType, Player creator) {
+
+		ConfigurationSection bSection = createdBoosters.getConfig().getConfigurationSection(boosterName);
+		if(bSection == null) {
+			bSection = createdBoosters.getConfig().createSection(boosterName);
+		}else if (bSection.getName().equalsIgnoreCase(boosterName)) {
+			creator.sendMessage(ChatColor.RED + " Error: the booster " + ChatColor.BOLD + boosterName + ChatColor.RED + " already exists!");
+			return;
+		}
+
+		Map<String, Object> defaults = new LinkedHashMap<>();
+		defaults.put("statistic", statistic);
+		defaults.put("booster_scope", boosterScope.name());
+		defaults.put("booster_type", boosterType.name());
+		defaults.put("multiplier", boosterType.getBoostIncreasePercentage());
+		defaults.put("duration", boosterType.getBoosterTime());
+
+
+		for(Map.Entry<String, Object> entries : defaults.entrySet()){
+			if(!bSection.isSet(entries.getKey())){
+				bSection.set(entries.getKey(), entries.getValue());
+			}
+		}
+
+		createdBoosters.save();
+		creator.sendMessage(ChatColor.GRAY + "Succesfully created a " + ChatColor.AQUA + ChatColor.BOLD +
+				boosterName + ChatColor.GRAY +  " booster!");
+
+	}
+
+
 
 	public void initliazeStatisticsAvailableForBoosting(){
 		NetworkStatistic.addStatistic(new PlayerExperience());

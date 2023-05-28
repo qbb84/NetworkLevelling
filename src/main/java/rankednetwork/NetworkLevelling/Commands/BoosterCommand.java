@@ -7,10 +7,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import rankednetwork.NetworkLevelling.Boosters.Booster;
 import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
+import rankednetwork.NetworkLevelling.Boosters.BoosterScope;
+import rankednetwork.NetworkLevelling.Boosters.BoosterType;
 import rankednetwork.NetworkLevelling.NetworkStatistic;
 
 import java.awt.*;
+import java.util.Arrays;
 
 public class BoosterCommand implements CommandExecutor {
 
@@ -27,20 +31,46 @@ public class BoosterCommand implements CommandExecutor {
 
 		switch (args[0].toLowerCase()) {
 			case "create":
-				if(args.length != 5) {return false;}
+				if(args.length == 5){
+					String boosterName = args[1];
+					String statistic = (NetworkStatistic.getAvailableStats().toString().toLowerCase().contains(args[2].toLowerCase())) ? args[2] : null;
+					BoosterScope scope = null;
+					BoosterType type = null;
+					try {
+						scope = BoosterScope.valueOf(args[3].toUpperCase());
+						type = BoosterType.valueOf(args[4].toUpperCase());
+					} catch (IllegalArgumentException ex) {
+						return false;
+					}
+					if(statistic == null) return false;
+					if(scope == null) return false;
+					if(type == null) return false;
+
+					manager.create(boosterName, statistic, scope, type,  p);
+					break;
+
+				}
+				if(args.length != 6) {return false;}
 				String boosterName = args[1];
 				String statistic = (NetworkStatistic.getAvailableStats().toString().toLowerCase().contains(args[2].toLowerCase())) ? args[2] : null;
+				BoosterScope type = null;
+				try {
+					type = BoosterScope.valueOf(args[3].toUpperCase());
+				} catch (IllegalArgumentException ex) {
+					return false;
+				}
 				double multiplier;
 				long duration;
 				try{
-					multiplier = Double.parseDouble(args[3]);
-					duration = Long.parseLong(args[4]);
+					multiplier = Double.parseDouble(args[4]);
+					duration = Long.parseLong(args[5]);
 				}catch (NumberFormatException exception){
 					return false;
 				}
 				if(statistic == null) return false;
+				if(type == null) return false;
 
-				manager.create(boosterName, statistic, multiplier, duration, p);
+				manager.create(boosterName, statistic, type , multiplier, duration,  p);
 
 				break;
 			case "remove":
@@ -56,6 +86,7 @@ public class BoosterCommand implements CommandExecutor {
 			case "view":
 				//views boosters of a player
 				break;
+			case "types":
 			default:
 				sender.sendMessage("create/remove/activate/give");
 				break;
