@@ -1,4 +1,4 @@
-package ranked.network.NetworkLevelling.Boosters;
+package rankednetwork.NetworkLevelling.Boosters;
 
 public enum BoosterType {
 

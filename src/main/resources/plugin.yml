@@ -1,4 +1,8 @@
 name: NetworkLevelling
 version: '${project.version}'
-main: ranked.network.NetworkLevelling.Main
+main: rankednetwork.Main
 api-version: 1.19
+commands:
+  booster:
+    description: Commands to manage boosters
+    usage:  /booster <create,remove,give,activate,stats>

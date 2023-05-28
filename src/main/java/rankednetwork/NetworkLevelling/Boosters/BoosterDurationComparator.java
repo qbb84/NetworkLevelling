@@ -1,6 +1,6 @@
-package ranked.network.NetworkLevelling.Boosters;
+package rankednetwork.NetworkLevelling.Boosters;
 
-import ranked.network.NetworkLevelling.NetworkStatistic;
+import rankednetwork.NetworkLevelling.NetworkStatistic;
 
 import java.util.Comparator;
 

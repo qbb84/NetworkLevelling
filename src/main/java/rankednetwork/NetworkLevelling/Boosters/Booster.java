@@ -1,6 +1,6 @@
-package ranked.network.NetworkLevelling.Boosters;
+package rankednetwork.NetworkLevelling.Boosters;
 
-import ranked.network.NetworkLevelling.NetworkStatistic;
+import rankednetwork.NetworkLevelling.NetworkStatistic;
 import org.bukkit.entity.Player;
 
 public class Booster<T extends NetworkStatistic> {
@@ -17,6 +17,8 @@ public class Booster<T extends NetworkStatistic> {
 
 	BoosterScope scope;
 	BoosterType boosterType;
+
+
 
 
 	public Booster(Player player, T statistic, BoosterType boosterType, BoosterScope scope) {

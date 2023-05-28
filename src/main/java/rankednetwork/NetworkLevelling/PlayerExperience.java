@@ -1,21 +1,23 @@
-package ranked.network.NetworkLevelling;
+package rankednetwork.NetworkLevelling;
 
 import org.bukkit.entity.Player;
 
+@BoosterMetadata(name = "PlayerExperience")
 public class PlayerExperience extends NetworkStatistic {
+
 
 	private Player player;
 	PlayerLevelManager levelManager;
-	private String name = "XP";
-	private String type = "Experience";
 
+
+	public PlayerExperience(){
+		this(null);
+	}
 
 	public PlayerExperience(Player player) {
-		super(0);
+		super();
 		this.player = player;
 		this.levelManager = new PlayerLevelManager();
-		name = "XP";
-		type = "Experience";
 	}
 
 	@Override
@@ -52,6 +54,8 @@ public class PlayerExperience extends NetworkStatistic {
 	public String setType(String type) {
 		return null;
 	}
+
+
 
 
 }

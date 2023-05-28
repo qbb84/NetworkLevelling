@@ -1,4 +1,4 @@
-package ranked.network.NetworkLevelling.Webhooks;
+package rankednetwork.NetworkLevelling.Webhooks;
 
 import org.bukkit.Color;
 

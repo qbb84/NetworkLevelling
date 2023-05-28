@@ -1,8 +1,8 @@
-package ranked.network.NetworkLevelling.Notifiers;
+package rankednetwork.NetworkLevelling.Notifiers;
 
-import ranked.network.NetworkLevelling.Boosters.Booster;
-import ranked.network.NetworkLevelling.Webhooks.DiscordWebhook;
-import ranked.network.NetworkLevelling.NetworkStatistic;
+import rankednetwork.NetworkLevelling.Boosters.Booster;
+import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
+import rankednetwork.NetworkLevelling.NetworkStatistic;
 import org.bukkit.Bukkit;
 
 import java.io.IOException;
