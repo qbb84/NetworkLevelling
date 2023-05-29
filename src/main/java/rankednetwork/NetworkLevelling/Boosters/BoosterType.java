@@ -5,7 +5,8 @@ public enum BoosterType {
 	MINOR("Minor", 60, 0.1),
 	HALF("Half", 60, 0.5),
 	DOUBLE("Double", 60, 1.0),
-	TRIPLE("Triple", 30, 2.0);
+	TRIPLE("Triple", 30, 2.0),
+	CUSTOM("Custom", 0, 0.0);
 
 	private final long timeInMinutes;
 	private final double boostIncreasePercentage;
