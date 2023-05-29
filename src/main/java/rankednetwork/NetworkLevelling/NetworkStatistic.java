@@ -3,7 +3,10 @@ package rankednetwork.NetworkLevelling;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 public abstract class NetworkStatistic {
 
@@ -42,11 +45,13 @@ public abstract class NetworkStatistic {
 		return availableStats;
 	}
 
+
 	public static  <T extends NetworkStatistic> void addStatistic(T t){
 		BoosterMetadata className = t.getClass().getAnnotation(BoosterMetadata.class);
-		if(className.name() == null){
+		if(className.name() == "null"){
 			if(!NetworkStatistic.availableStats.contains(t.getClass().getSimpleName())){
 				NetworkStatistic.availableStats.add(t.getClass().getSimpleName());
+
 			}
 			return;
 		}

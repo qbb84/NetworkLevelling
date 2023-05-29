@@ -1,6 +1,7 @@
 package rankednetwork.NetworkLevelling.Commands;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -24,14 +25,20 @@ public class BoosterCommand implements CommandExecutor {
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
-		if(!s.equals("booster")) {return false;}
-		if(!(args.length > 0)) {return false;}
-		if(!(sender instanceof Player)) {return false;}
+		if (!s.equals("booster")) {
+			return false;
+		}
+		if (!(args.length > 0)) {
+			return false;
+		}
+		if (!(sender instanceof Player)) {
+			return false;
+		}
 		Player p = (Player) sender;
 
 		switch (args[0].toLowerCase()) {
 			case "create":
-				if(args.length == 5){
+				if (args.length == 5) {
 					String boosterName = args[1];
 					String statistic = (NetworkStatistic.getAvailableStats().toString().toLowerCase().contains(args[2].toLowerCase())) ? args[2] : null;
 					BoosterScope scope = null;
@@ -42,49 +49,69 @@ public class BoosterCommand implements CommandExecutor {
 					} catch (IllegalArgumentException ex) {
 						return false;
 					}
-					if(statistic == null) return false;
-					if(scope == null) return false;
-					if(type == null) return false;
+					if (statistic == null) return false;
+					if (scope == null) return false;
+					if (type == null) return false;
 
-					manager.create(boosterName, statistic, scope, type,  p);
+					manager.create(boosterName, statistic, scope, type, p);
 					break;
+				}else {
+					if (args.length != 6) {
+						return false;
+					}
+					String boosterName = args[1];
+					String statistic = (NetworkStatistic.getAvailableStats().toString().toLowerCase().contains(args[2].toLowerCase())) ? args[2] : null;
+					BoosterScope type = null;
+					try {
+						type = BoosterScope.valueOf(args[3].toUpperCase());
+					} catch (IllegalArgumentException ex) {
+						return false;
+					}
+					double multiplier;
+					long duration;
+					try {
+						multiplier = Double.parseDouble(args[4]);
+						duration = Long.parseLong(args[5]);
+					} catch (NumberFormatException exception) {
+						return false;
+					}
+					if (statistic == null) return false;
+					if (type == null) return false;
 
+					manager.create(boosterName, statistic, type, multiplier, duration, p);
+					break;
 				}
-				if(args.length != 6) {return false;}
-				String boosterName = args[1];
-				String statistic = (NetworkStatistic.getAvailableStats().toString().toLowerCase().contains(args[2].toLowerCase())) ? args[2] : null;
-				BoosterScope type = null;
-				try {
-					type = BoosterScope.valueOf(args[3].toUpperCase());
-				} catch (IllegalArgumentException ex) {
-					return false;
-				}
-				double multiplier;
-				long duration;
-				try{
-					multiplier = Double.parseDouble(args[4]);
-					duration = Long.parseLong(args[5]);
-				}catch (NumberFormatException exception){
-					return false;
-				}
-				if(statistic == null) return false;
-				if(type == null) return false;
-
-				manager.create(boosterName, statistic, type , multiplier, duration,  p);
-
-				break;
 			case "remove":
-				//remove removes a booster //remove name removes it from a player
+				if(args.length != 4){return false;}
+				Player pl = Bukkit.getPlayer(args[1]);
+				if(pl == null){return false;}
+				String boosterName = args[2];
+				int count = Integer.parseInt(args[3]);
+				manager.removeBooster(pl, boosterName, count);
 				break;
-			case "activate":
+			case "claim":
+				//activate booster, queue up, and remove -1 of that booster from the config. Only allow 1 of the same booster to be queued
 				break;
 			case "give":
+				if (args.length != 4) {return false;}
+				Player player = Bukkit.getPlayer(args[1]);
+				if(player == null){return false;}
+				String boosterAlias = args[2];
+				int amount = 0;
+				try {
+					amount = Integer.parseInt(args[3]);
+				} catch (NumberFormatException exception) {
+					return false;
+				}
+				manager.giveBooster(player, boosterAlias, amount);
 				break;
 			case "stats":
 				sender.sendMessage(NetworkStatistic.statsList());
 				break;
 			case "view":
-				//views boosters of a player
+				if(Bukkit.getPlayer(args[1]) == null){return false;}
+				//if(args.length != 1) {return false;}
+				manager.viewBoostersOfPlayer(Bukkit.getPlayer(args[1]), p);
 				break;
 			case "types":
 			default:

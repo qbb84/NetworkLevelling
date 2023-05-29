@@ -2,7 +2,7 @@ package rankednetwork.NetworkLevelling;
 
 import org.bukkit.entity.Player;
 
-@BoosterMetadata(name = "PlayerExperience")
+@BoosterMetadata(name = "XP")
 public class PlayerExperience extends NetworkStatistic {
 
 
