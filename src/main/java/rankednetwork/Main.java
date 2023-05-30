@@ -19,6 +19,7 @@ public final class Main extends JavaPlugin {
         new DiscordConfigDefaults();
         getCommand("booster").setExecutor(new BoosterCommand());
         BoosterManager.getInstance().initliazeStatisticsAvailableForBoosting();
+        BoosterManager.getInstance().checkBoostersRunnable();
 //        BoosterManager expBooster = new BoosterManager();
 //        PlayerExperience experience = new PlayerExperience(Bukkit.getPlayer("Rewind"));
 //        Booster<PlayerExperience> playerExpBooster = new Booster<>(Bukkit.getPlayer("Rewind"), experience, BoosterType.HALF, BoosterScope.PERSONAL);

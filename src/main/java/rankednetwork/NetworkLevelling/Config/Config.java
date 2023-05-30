@@ -25,7 +25,6 @@ public class Config {
 				file.createNewFile();
 			}
 
-
 			config.load(file);
 			config.save(file);
 
