@@ -8,10 +8,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import rankednetwork.NetworkLevelling.Boosters.Booster;
-import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
-import rankednetwork.NetworkLevelling.Boosters.BoosterScope;
-import rankednetwork.NetworkLevelling.Boosters.BoosterType;
+import rankednetwork.NetworkLevelling.Boosters.*;
 import rankednetwork.NetworkLevelling.NetworkStatistic;
 
 import java.awt.*;
@@ -61,9 +58,9 @@ public class BoosterCommand implements CommandExecutor {
 					}
 					String boosterName = args[1];
 					String statistic = (NetworkStatistic.getAvailableStats().toString().toLowerCase().contains(args[2].toLowerCase())) ? args[2] : null;
-					BoosterScope type = null;
+					BoosterScope scope = null;
 					try {
-						type = BoosterScope.valueOf(args[3].toUpperCase());
+						scope = BoosterScope.valueOf(args[3].toUpperCase());
 					} catch (IllegalArgumentException ex) {
 						return false;
 					}
@@ -76,9 +73,9 @@ public class BoosterCommand implements CommandExecutor {
 						return false;
 					}
 					if (statistic == null) return false;
-					if (type == null) return false;
+					if (scope == null) return false;
 
-					manager.create(boosterName, statistic, type, multiplier, duration, p);
+					manager.create(boosterName, statistic, scope, BoosterType.CUSTOM, multiplier, duration, p);
 					break;
 				}
 			case "remove":
@@ -89,8 +86,16 @@ public class BoosterCommand implements CommandExecutor {
 				int count = Integer.parseInt(args[3]);
 				manager.removeBooster(pl, boosterName, count);
 				break;
-			case "claim":
-				//activate booster, queue up, and remove -1 of that booster from the config. Only allow 1 of the same booster to be queued
+			case "queue":
+				if(args[1].equalsIgnoreCase("list")){
+					manager.displayBoosterQueue(p);
+					break;
+				}
+				Player activationPlayer = Bukkit.getPlayer(args[1]);
+				if(activationPlayer == null) {return false;}
+				if(args.length != 3){return false;}
+				String bName = args[2];
+				manager.queueBooster(manager.getBoosterForPlayer(activationPlayer, bName), activationPlayer, bName);
 				break;
 			case "give":
 				if (args.length != 4) {return false;}
@@ -114,6 +119,8 @@ public class BoosterCommand implements CommandExecutor {
 				manager.viewBoostersOfPlayer(Bukkit.getPlayer(args[1]), p);
 				break;
 			case "types":
+				break;
+
 			default:
 				sender.sendMessage("create/remove/activate/give");
 				break;

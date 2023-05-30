@@ -15,63 +15,110 @@ import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
 import java.awt.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Singleton class used for managing Boosters
  */
 public class BoosterManager {
 
+	private static BoosterManager instance = null;
+
 	private Booster<? extends NetworkStatistic> activeBooster;
 
-	private  SortedSet<Booster<? extends NetworkStatistic>> totalBoosters = new TreeSet<>(new BoosterDurationComparator());
-	private  SortedSet<Booster<? extends NetworkStatistic>> activeBoosters = new TreeSet<>(new BoosterDurationComparator());
+	private SortedSet<Booster<? extends NetworkStatistic>> totalBoosters = new TreeSet<>(new BoosterDurationComparator());
+	private SortedSet<Booster<? extends NetworkStatistic>> activeBoosters = new TreeSet<>(new BoosterDurationComparator());
+
 
 	private Map<Booster<? extends NetworkStatistic>, Long> boosterActivationTimes = new HashMap<>();
 
 	private final Config createdBoosters = new Config(Main.getMain(), "created_boosters");
 	private final Config playerBoostersList = new Config(Main.getMain(), "player_boosters_list");
 
+	BoosterQueue boosterQueue = new BoosterQueue();
 
-//will move this to booster queueTM
-	public enum Status{
+	private BoosterManager(){}
 
-		ACTIVE(Color.GREEN + "ACTIVE"),
-		INACTIVE(Color.RED + "INACTIVE");
-//		CAN_BOOST,
-//		BOOSTER_COUNT,
-//		GET_ACTIVE_BOOSTERS,
-//		GET_TOTAL_BOOSTERS;
-// TODO Implement
 
-		  final String statusName;
+	public static BoosterManager getInstance() {
+		if (instance == null) {
+			instance = new BoosterManager();
+		}
+		return instance;
+	}
 
-		Status(String statusName){
-			this.statusName = statusName;
+	public Pair<Double, Long> getConfigValuesForCustomBooster(String boosterName) {
+		double customPercentage = createdBoosters.getConfig().getConfigurationSection(boosterName).getDouble("multiplier");
+		long customDuration = createdBoosters.getConfig().getConfigurationSection(boosterName).getLong("duration");
+		return new Pair<>(customPercentage, customDuration);
+	}
+
+
+	public <T extends NetworkStatistic> void queueBooster(Booster<T> booster, Player player, String boosterName) {
+		if(!checkIfPlayerHasBooster(player, boosterName)) return;
+
+		for(Booster<?> boosters : boosterQueue.getGlobalBoosterQueue()) {
+			if (boosters.getBoosterName().equalsIgnoreCase(this.getBoosterForPlayer(player, boosterName).getBoosterName())) {
+				player.sendMessage("You can only queue 1 of the same booster at a time!");
+				return;
+			}
 		}
 
-	}
+		if(booster.getBoosterType() == BoosterType.CUSTOM) {
+			Pair<Double, Long> customValues = getConfigValuesForCustomBooster(boosterName);
+			booster.setMultiplier(customValues.first);
+			booster.setDuration(customValues.second);
+		}else{
+			booster.setDuration(booster.getDuration());
+		}
+		player.sendMessage(String.valueOf(booster.getDuration()));
 
-	public static BoosterManager getInstance(){
-		return new BoosterManager();
-	}
-
-	public <T extends NetworkStatistic> void activateBooster(Booster<T> booster) {
-		activeBooster = booster;
 		GameNotifier gameNotifier = new GameNotifier();
 
-		switch (booster.getScope()){
+		switch (booster.getScope()) {
 			case PERSONAL:
 				gameNotifier.sendActivatedMessage(booster);
 				totalBoosters.add(booster);
+				boolean wasPersonalQueueEmpty = boosterQueue.getPersonalBoosterQueue().isEmpty();
+				boosterQueue.addBooster(booster);
+				if (wasPersonalQueueEmpty) {
+					player.sendMessage(ChatColor.YELLOW +  "Your personal booster " + boosterName + " is now being used!");
+					gameNotifier.sendActivatedMessage(booster);
+					booster.activate();
+
+				} else {
+					player.sendMessage(ChatColor.YELLOW +  "Your personal booster " + boosterName + " is now being queued!");
+				}
 				break;
 			case GLOBAL:
-				//Add personal
-				//set Active boosters, setup queue
+				totalBoosters.add(booster);
+				boolean wasGlobalQueueEmpty = boosterQueue.getGlobalBoosterQueue().isEmpty();
+				boosterQueue.addBooster(booster);
+
+				if (wasGlobalQueueEmpty) {
+					player.sendMessage(ChatColor.YELLOW +  "Your global booster " + boosterName + " is now being used!");
+					gameNotifier.sendActivatedMessage(booster);
+					booster.activate();
+					long remainingTimeMillis = booster.getRemainingTime();
+					player.sendMessage(String.valueOf(remainingTimeMillis));
+				} else {
+					player.sendMessage(ChatColor.YELLOW +  "Your global booster " + boosterName + " is now being queued!");
+				}
 				break;
 			default:
+				break;
 		}
 
+		removeBooster(player, boosterName, 1);
 	}
+
+
+	public void checkBoostersRunnable() {
+		int delay = 1200;
+		int period = 1200;
+		Bukkit.getScheduler().runTaskTimer(Main.getMain(), boosterQueue.checkAndActivateNextBooster(), delay, period);
+	}
+
 
 	public void setDiscordSettingDefaults(){
 
@@ -136,7 +183,7 @@ public class BoosterManager {
 
 		NetworkStatistic statistic = getStatisticFromName(player, statisticName);
 
-		return new Booster<>(player, statistic, type, scope);
+		return new Booster<>(player, statistic, type, scope, boosterName);
 	}
 
 	public void removeBooster(Player player, String boosterName, int amount){
@@ -175,15 +222,9 @@ public class BoosterManager {
 		playerBoostersList.save();
 	}
 
-	@NotNull
-	public NetworkStatistic getStatisticFromName(Player player, String name){
-		switch (name){
-			case "XP": return new PlayerExperience(player);
-			default: throw new IllegalArgumentException("No statistic found for name: " + name + " see method: getStatisticFromName");
-		}
-	}
 
-	public void create(String boosterName, String statistic, BoosterScope boosterScope, double multiplier, long duration, Player creator) {
+
+	public void create(String boosterName, String statistic, BoosterScope boosterScope, BoosterType boosterType, double multiplier, long duration, Player creator) {
 
 		ConfigurationSection bSection = createdBoosters.getConfig().getConfigurationSection(boosterName);
 		if(bSection == null) {
@@ -196,11 +237,12 @@ public class BoosterManager {
 
 
 		Map<String, Object> defaults = new LinkedHashMap<>();
-		defaults.put("statistic", statistic);
+		defaults.put("statistic", statistic.toUpperCase());
 		defaults.put("booster_scope", boosterScope.name());
-		defaults.put("booster_type", BoosterType.CUSTOM.name());
+		defaults.put("booster_type", boosterType.name());
 		defaults.put("multiplier", multiplier);
 		defaults.put("duration", duration);
+
 
 		for(Map.Entry<String, Object> entries : defaults.entrySet()){
 			if(!bSection.isSet(entries.getKey())){
@@ -225,7 +267,7 @@ public class BoosterManager {
 		}
 
 		Map<String, Object> defaults = new LinkedHashMap<>();
-		defaults.put("statistic", statistic);
+		defaults.put("statistic", statistic.toUpperCase());
 		defaults.put("booster_scope", boosterScope.name());
 		defaults.put("booster_type", boosterType.name());
 		defaults.put("multiplier", boosterType.getBoostIncreasePercentage());
@@ -259,6 +301,43 @@ public class BoosterManager {
 		return boosterList;
 	}
 
+	@NotNull
+	public NetworkStatistic getStatisticFromName(Player player, @NotNull String name){
+		switch (name){
+			case "XP": return new PlayerExperience(player);
+			case "xp": return new PlayerExperience(player);
+			default: throw new IllegalArgumentException("No statistic found for name: " + name + " see method: getStatisticFromName");
+		}
+	}
+
+	public Booster<?> getBoosterForPlayer(@NotNull Player player, String boosterName) {
+		String playerUniqueId = String.valueOf(player.getUniqueId());
+		ConfigurationSection playerSection = playerBoostersList.getConfig().getConfigurationSection(playerUniqueId);
+
+		if (playerSection == null) {
+			// The player doesn't have any boosters
+			return null;
+		}
+
+		ConfigurationSection boosterSection = playerSection.getConfigurationSection("boosters");
+
+		if (boosterSection == null || !boosterSection.isSet(boosterName)) {
+			// The player doesn't have this booster
+			return null;
+		}
+
+		// Get the data to recreate the Booster object
+		ConfigurationSection boostersCreatedList = createdBoosters.getConfig().getConfigurationSection(boosterName);
+		String statisticName = (String) boostersCreatedList.get("statistic");
+		BoosterType type = BoosterType.valueOf(boostersCreatedList.get("booster_type").toString());
+		BoosterScope scope = BoosterScope.valueOf(boostersCreatedList.get("booster_scope").toString());
+
+		NetworkStatistic statistic = getStatisticFromName(player, statisticName);
+
+		return new Booster<>(player, statistic, type, scope, boosterName);
+	}
+
+
 
 
 	public void initliazeStatisticsAvailableForBoosting(){
@@ -269,9 +348,33 @@ public class BoosterManager {
 		return totalBoosters.size();
 	}
 
+	public boolean checkIfPlayerHasBooster(Player player, String boosterName){
+		ConfigurationSection section = playerBoostersList.getConfig().getConfigurationSection(player.getUniqueId().toString());
+		ConfigurationSection boosterSection = section.getConfigurationSection("boosters");
 
+		boolean playerHasBooster = boosterSection.getKeys(true).stream().anyMatch(key -> key.equalsIgnoreCase(boosterName));
 
+		if(!playerHasBooster){
+			player.sendMessage(ChatColor.RED + " Error: the player " + ChatColor.BOLD + player.getName()  + ChatColor.RED + " doesn't have a " + ChatColor.BOLD + boosterName +
+					ChatColor.RED + " booster");
+			return false;
+		}
+		return true;
+	}
 
+	public void displayBoosterQueue(Player player) {
+		boosterQueue.displayBoosterQueue(player);
+	}
 
+	public Map<Booster<? extends NetworkStatistic>, Long> getBoosterActivationTimes() {
+		return boosterActivationTimes;
+	}
 
+	public Config getCreatedBoosters() {
+		return createdBoosters;
+	}
+
+	public Config getPlayerBoostersList() {
+		return playerBoostersList;
+	}
 }
