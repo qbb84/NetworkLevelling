@@ -1,11 +1,14 @@
 package rankednetwork;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
 import rankednetwork.NetworkLevelling.Commands.BoosterCommand;
+import rankednetwork.NetworkLevelling.Config.Config;
 import rankednetwork.NetworkLevelling.Config.DiscordConfigDefaults;
 import rankednetwork.NetworkLevelling.PlayerExperience;
 import rankednetwork.NetworkLevelling.PlayerLevelManager;
+import rankednetwork.NetworkLevelling.PlayerLevellingEvents;
 
 public final class Main extends JavaPlugin {
 
@@ -20,6 +23,7 @@ public final class Main extends JavaPlugin {
         getCommand("booster").setExecutor(new BoosterCommand());
         BoosterManager.getInstance().initliazeStatisticsAvailableForBoosting();
         BoosterManager.getInstance().checkBoostersRunnable();
+        getServer().getPluginManager().registerEvents(new PlayerLevellingEvents(), this);
 //        BoosterManager expBooster = new BoosterManager();
 //        PlayerExperience experience = new PlayerExperience(Bukkit.getPlayer("Rewind"));
 //        Booster<PlayerExperience> playerExpBooster = new Booster<>(Bukkit.getPlayer("Rewind"), experience, BoosterType.HALF, BoosterScope.PERSONAL);
@@ -41,5 +45,10 @@ public final class Main extends JavaPlugin {
 
     public static Main getMain() {
         return main;
+    }
+
+    public void defaultPlayerLevelConfig(){
+        Config playerLevels = PlayerLevelManager.getInstance().getPlayerLevelsConf();
+
     }
 }
