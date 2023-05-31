@@ -63,12 +63,14 @@ public class Booster<T extends NetworkStatistic> {
 		return statistic;
 	}
 
+
 	public double getBoostAmount() {
 		return boostAmount;
 	}
 
 	public long getDuration() {
 		return duration;
+
 	}
 
 	public void setMultiplier(double boostAmount) {
@@ -118,6 +120,10 @@ public class Booster<T extends NetworkStatistic> {
 		this.isActive = false;
 	}
 
+	public long getDurationInMinutes() {
+		return TimeUnit.MILLISECONDS.toMinutes(duration);
+	}
+
 
 
 	public long getRemainingTime() {
@@ -129,6 +135,37 @@ public class Booster<T extends NetworkStatistic> {
 
 	public long getActivationTime() {
 		return activationTime;
+	}
+
+	public String toString() {
+		if(isActive) {
+			return getBoosterType().name() + "," + TimeUnit.MILLISECONDS.toMinutes(getDuration()) + "," + getRemainingTime() + "," + getPlayer().getName() + "," + getScope() + "," + isActive() + "," + getActivationTime() + "," + getBoostAmount() + "," + getBoosterName() + "," + getStatistic().getType();
+		}
+		 return getBoosterType().name() + "," + TimeUnit.MILLISECONDS.toMinutes(getDuration()) + "," + "IN QUEUE"+ "," + getPlayer().getName() + "," + getScope() + "," + isActive() + "," + getActivationTime() + "," + getBoostAmount() + "," + getBoosterName() + "," + getStatistic().getType();
+		}
+
+	public static Booster<?> fromString(String boosterString) {
+		String[] parts = boosterString.split(",");
+		BoosterType boosterType = BoosterType.valueOf(parts[0]);
+		long maxDuration = Long.parseLong(parts[1]);
+		//long remainingDuration = Long.parseLong(parts[2]);
+		String playerName = parts[3];
+		Player player = Bukkit.getPlayer(playerName);
+		BoosterScope scope = BoosterScope.valueOf(parts[4].toUpperCase());
+		boolean isActive = Boolean.parseBoolean(parts[5]);
+		long activationTime = Long.parseLong(parts[6]);
+		double boostAmount = Double.parseDouble(parts[7]);
+		String boosterName = parts[8];
+		NetworkStatistic statistic = BoosterManager.getInstance().getStatisticFromName(player, parts[9]);// TODO
+		Booster<?> booster = new Booster<>(player, statistic, boosterType, scope, boosterName);
+		booster.setDuration(maxDuration);
+		booster.setMultiplier(boostAmount);
+		if (isActive) {
+			booster.activate();
+			booster.activationTime = activationTime;
+		}
+
+		return booster;
 	}
 }
 

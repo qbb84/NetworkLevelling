@@ -37,6 +37,7 @@ public class PlayerLevelManager implements ExperienceChangeListener {
 
 	private int getCurrentLevel(Player player) {
 		// Fetch the player's current level from the relevant data source
+		//TODO Player Level
 		return 0;
 	}
 

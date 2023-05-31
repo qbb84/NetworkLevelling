@@ -1,9 +1,11 @@
 package rankednetwork.NetworkLevelling.Boosters;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import rankednetwork.NetworkLevelling.Config.DiscordConfigDefaults;
 import rankednetwork.NetworkLevelling.Notifiers.GameNotifier;
 import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
@@ -13,6 +15,8 @@ import java.util.*;
 public class BoosterQueue {
 	private Queue<Booster<?>> personalBoosterQueue = new LinkedList<>();
 	private Queue<Booster<?>> globalBoosterQueue = new LinkedList<>();
+
+	//Serialize all booster releated queues
 
 
 	public void addBooster(Booster<?> booster) {
@@ -54,12 +58,12 @@ public class BoosterQueue {
 				boosterDuration = b.getRemainingTime();
 			} else {
 				// If the booster is not active, use its total duration
-				boosterDuration = b.getDuration() / 60 / 1000;  // This is in minutes
+				boosterDuration = b.getDurationInMinutes();  // This is in minutes
 			}
 			totalTime += boosterDuration;
 		}
 
-		return totalTime+1;
+		return totalTime + 1;
 	}
 
 
@@ -74,9 +78,9 @@ public class BoosterQueue {
 			for (Booster<?> booster : getGlobalBoosterQueue()) {
 				String boosterName = booster.getBoosterName();
 				String timeStatus;
-				if(booster.isActive()) {
+				if (booster.isActive()) {
 					timeStatus = (booster.getRemainingTime() < 0) ? " ending soon!" : booster.getRemainingTime() + " minutes remaining! ";
-				} else if(getGlobalBoosterQueue().peek().equals(booster)){
+				} else if (getGlobalBoosterQueue().peek().equals(booster)) {
 					timeStatus = "1 minute until activation! ";
 				} else {
 					timeStatus = getTimeUntilActive(booster) + " minutes until activation! ";
@@ -129,15 +133,10 @@ public class BoosterQueue {
 						gameNotifier.sendActivatedMessage(nextBooster);
 
 						// Send discord notification
-
-                          DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
-               				.setColor(Color.AQUA)
-								  .setTitle(nextBooster.getBoosterName() + " Booster Activation!")
-             				 .setThumbnail("https://png.pngtree.com/png-clipart/20191120/original/pngtree-store-icon-in-line-style-png-image_5053711.jpg")
-              				 .setFooter("Thank you for the support!", "https://png.pngtree.com/png-clipart/20191120/original/pngtree-store-icon-in-line-style-png-image_5053711.jpg")
-              				 .setDescription(nextBooster.getPlayer().getName() + " has activated a " + nextBooster.getBoosterType().getBoostIncreasePercentage() + "% " + nextBooster.getStatistic().getName() + " Booster!");
-       						 BoosterManager.getInstance().sendDiscordMessage("https://discord.com/api/webhooks/1111309366633709658/3z-lXUwJSodp3k9mb8Lsog897HxHlwd1rnaVATdGWvp7XIZM_So3eX7YK6Xddrmo88Tm", nextBooster, embedObject);
-							//TODO Move discord to a method so that when players that activate boosters first in queue get notified.
+						if(nextBooster.getScope().equals(BoosterScope.GLOBAL)){
+							sendGlobalDiscordMessage(nextBooster);
+						}
+						//TODO Move discord to a method so that when players that activate boosters first in queue get notified.
 						// Record the activation time
 						long activationTime = System.currentTimeMillis();
 						BoosterManager.getInstance().getBoosterActivationTimes().put(nextBooster, activationTime);
@@ -147,7 +146,33 @@ public class BoosterQueue {
 		};
 	}
 
-	public Color randomColor(){
+	public void sendGlobalDiscordMessage(Booster booster) {
+		YamlConfiguration discordConfigDefaults = DiscordConfigDefaults.getDiscordSettings();
+
+		ConfigurationSection general = discordConfigDefaults.getConfigurationSection("general");
+
+
+
+		if(general == null){
+			general = discordConfigDefaults.createSection("general");
+		}
+
+		if(!general.isSet("webhook_url")){
+			general.set("webhook_url", "");
+		}
+
+		String url = general.get("webhook_url").toString();
+
+		DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
+				.setColor(randomColor())
+				.setTitle(booster.getBoosterName() + " Booster Activation!")
+				.setThumbnail("https://png.pngtree.com/png-clipart/20191120/original/pngtree-store-icon-in-line-style-png-image_5053711.jpg")
+				.setFooter("Thank you for the support!", "https://png.pngtree.com/png-clipart/20191120/original/pngtree-store-icon-in-line-style-png-image_5053711.jpg")
+				.setDescription(booster.getPlayer().getName() + " has activated a " + booster.getBoosterType().getBoostIncreasePercentage() + "% " + booster.getStatistic().getName() + " Booster!");
+		BoosterManager.getInstance().sendDiscordMessage(url, booster, embedObject);
+	}
+
+	public Color randomColor() {
 		Field[] declaredFields = Color.class.getDeclaredFields();
 		List<Color> colors = new ArrayList<>();
 		for (Field field : declaredFields) {

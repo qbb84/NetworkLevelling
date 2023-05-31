@@ -7,6 +7,5 @@ public class GameNotifier implements Notifier {
 
 	@Override
 	public void sendActivatedMessage(Booster<? extends NetworkStatistic> booster) {
-
 	}
 }

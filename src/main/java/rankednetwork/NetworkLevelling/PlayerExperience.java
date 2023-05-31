@@ -24,7 +24,7 @@ public class PlayerExperience extends NetworkStatistic  {
 	}
 
 	public PlayerExperience(Player player) {
-		super(player);
+		super(player, "PlayerExperience", "XP");
 		this.player = player;
 		this.levelManager = PlayerLevelManager.getInstance();
 	}

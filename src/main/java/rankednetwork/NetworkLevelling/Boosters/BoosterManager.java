@@ -15,7 +15,9 @@ import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
 import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 /**
  * Singleton class used for managing Boosters
@@ -34,10 +36,18 @@ public class BoosterManager {
 
 	private final Config createdBoosters = new Config(Main.getMain(), "created_boosters");
 	private final Config playerBoostersList = new Config(Main.getMain(), "player_boosters_list");
+	private final Config booster_cache = new Config(Main.getMain(), "booster_queue_cache");
+
+	private final Map<String, Function<Player, NetworkStatistic>> nameToStatMap;
+
 
 	BoosterQueue boosterQueue = new BoosterQueue();
 
-	private BoosterManager(){}
+	private BoosterManager() {
+		nameToStatMap = new HashMap<>();
+		nameToStatMap.put("XP", PlayerExperience::new);
+		nameToStatMap.put("xp", PlayerExperience::new);
+	}
 
 
 	public static BoosterManager getInstance() {
@@ -55,20 +65,29 @@ public class BoosterManager {
 
 
 	public <T extends NetworkStatistic> void queueBooster(Booster<T> booster, Player player, String boosterName) {
-		if(!checkIfPlayerHasBooster(player, boosterName)) return;
+		if (!checkIfPlayerHasBooster(player, boosterName)) return;
 
-		for(Booster<?> boosters : boosterQueue.getGlobalBoosterQueue()) {
-			if (boosters.getBoosterName().equalsIgnoreCase(this.getBoosterForPlayer(player, boosterName).getBoosterName())) {
-				player.sendMessage("You can only queue 1 of the same booster at a time!");
-				return;
+		if(booster.getScope().equals(BoosterScope.GLOBAL)) {
+			for (Booster<?> boosters : boosterQueue.getGlobalBoosterQueue()) {
+				if (boosters.getBoosterName().equalsIgnoreCase(this.getBoosterForPlayer(player, boosterName).getBoosterName())) {
+					player.sendMessage("You can only queue 1 of the same booster at a time!");
+					return;
+				}
+			}
+		}else{
+			for (Booster<?> boosters : boosterQueue.getPersonalBoosterQueue()) {
+				if (boosters.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+					player.sendMessage("You can only queue 1 personal booster at a time");
+					return;
+				}
 			}
 		}
 
-		if(booster.getBoosterType() == BoosterType.CUSTOM) {
+		if (booster.getBoosterType() == BoosterType.CUSTOM) {
 			Pair<Double, Long> customValues = getConfigValuesForCustomBooster(boosterName);
 			booster.setMultiplier(customValues.first);
 			booster.setDuration(customValues.second);
-		}else{
+		} else {
 			booster.setDuration(booster.getDuration());
 		}
 		player.sendMessage(String.valueOf(booster.getDuration()));
@@ -82,27 +101,24 @@ public class BoosterManager {
 				boolean wasPersonalQueueEmpty = boosterQueue.getPersonalBoosterQueue().isEmpty();
 				boosterQueue.addBooster(booster);
 				if (wasPersonalQueueEmpty) {
-					player.sendMessage(ChatColor.YELLOW +  "Your personal booster " + boosterName + " is now being used!");
+					player.sendMessage(ChatColor.YELLOW + "Your personal booster " + boosterName + " is now being used!");
 					gameNotifier.sendActivatedMessage(booster);
 					booster.activate();
-
 				} else {
-					player.sendMessage(ChatColor.YELLOW +  "Your personal booster " + boosterName + " is now being queued!");
+					player.sendMessage(ChatColor.YELLOW + "Your personal booster " + boosterName + " is now being queued!");
 				}
 				break;
 			case GLOBAL:
 				totalBoosters.add(booster);
 				boolean wasGlobalQueueEmpty = boosterQueue.getGlobalBoosterQueue().isEmpty();
 				boosterQueue.addBooster(booster);
-
 				if (wasGlobalQueueEmpty) {
-					player.sendMessage(ChatColor.YELLOW +  "Your global booster " + boosterName + " is now being used!");
+					player.sendMessage(ChatColor.YELLOW + "Your global booster " + boosterName + " is now being used!");
 					gameNotifier.sendActivatedMessage(booster);
 					booster.activate();
-					long remainingTimeMillis = booster.getRemainingTime();
-					player.sendMessage(String.valueOf(remainingTimeMillis));
+					boosterQueue.sendGlobalDiscordMessage(booster);
 				} else {
-					player.sendMessage(ChatColor.YELLOW +  "Your global booster " + boosterName + " is now being queued!");
+					player.sendMessage(ChatColor.YELLOW + "Your global booster " + boosterName + " is now being queued!");
 				}
 				break;
 			default:
@@ -116,15 +132,15 @@ public class BoosterManager {
 	public void checkBoostersRunnable() {
 		int delay = 1200;
 		int period = 1200;
-		Bukkit.getScheduler().runTaskTimer(Main.getMain(), boosterQueue.checkAndActivateNextBooster(), delay, period);
+		Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getMain(), boosterQueue.checkAndActivateNextBooster(), delay, period);
 	}
 
 
-	public void setDiscordSettingDefaults(){
+	public void setDiscordSettingDefaults() {
 
 	}
 
-	public <T extends  Booster<?>>void sendDiscordMessage(String url, T booster, DiscordWebhook.EmbedObject embedObject) {
+	public <T extends Booster<?>> void sendDiscordMessage(String url, T booster, DiscordWebhook.EmbedObject embedObject) {
 		DiscordNotifier boosterNotifier = new DiscordNotifier(url);
 		boosterNotifier.setEmbed(embedObject);
 		boosterNotifier.sendActivatedMessage(booster);
@@ -148,29 +164,27 @@ public class BoosterManager {
 		String playerUniqueId = String.valueOf(player.getUniqueId());
 
 		ConfigurationSection section = playerBoostersList.getConfig().getConfigurationSection(playerUniqueId);
-		if(section == null){
+		if (section == null) {
 			section = playerBoostersList.getConfig().createSection(playerUniqueId);
 		}
 
 
-
 		Player checkUUID = Bukkit.getPlayer(player.getUniqueId());
-		if(!section.isSet("Player") || !section.get("Player").equals(checkUUID)){
+		if (!section.isSet("Player") || !section.get("Player").equals(checkUUID)) {
 			section.set("Player_Name", checkUUID.getName());
 		}
 
 		ConfigurationSection boosterSection = section.getConfigurationSection("boosters");
 
-		if(section.getConfigurationSection("boosters") == null){
+		if (section.getConfigurationSection("boosters") == null) {
 			boosterSection = section.createSection("boosters");
 		}
 
 
-
-		if(!boosterSection.isSet(boosterName)){
+		if (!boosterSection.isSet(boosterName)) {
 			boosterSection.set(boosterName, amount);
-		}else if(boosterSection.isSet(boosterName)){
-			boosterSection.set(boosterName, boosterSection.getInt(boosterName)+amount);
+		} else if (boosterSection.isSet(boosterName)) {
+			boosterSection.set(boosterName, boosterSection.getInt(boosterName) + amount);
 		}
 
 
@@ -186,7 +200,7 @@ public class BoosterManager {
 		return new Booster<>(player, statistic, type, scope, boosterName);
 	}
 
-	public void removeBooster(Player player, String boosterName, int amount){
+	public void removeBooster(Player player, String boosterName, int amount) {
 		boolean boosterExists = createdBoosters.getConfig().getKeys(true).stream().anyMatch(key -> key.equalsIgnoreCase(boosterName));
 
 		if (!boosterExists) {
@@ -199,8 +213,8 @@ public class BoosterManager {
 
 		boolean playerHasBooster = boosterSection.getKeys(true).stream().anyMatch(key -> key.equalsIgnoreCase(boosterName));
 
-		if(!playerHasBooster){
-			player.sendMessage(ChatColor.RED + " Error: the player " + ChatColor.BOLD + player.getName()  + ChatColor.RED + " doesn't have a " + ChatColor.BOLD + boosterName +
+		if (!playerHasBooster) {
+			player.sendMessage(ChatColor.RED + " Error: the player " + ChatColor.BOLD + player.getName() + ChatColor.RED + " doesn't have a " + ChatColor.BOLD + boosterName +
 					ChatColor.RED + " booster");
 			return;
 		}
@@ -213,9 +227,9 @@ public class BoosterManager {
 
 		int amountTaken = boosterSection.getInt(properBoosterName) - amount;
 
-		if(amountTaken > 0){
+		if (amountTaken > 0) {
 			boosterSection.set(properBoosterName, amountTaken);
-		}else{
+		} else {
 			boosterSection.set(properBoosterName, null);
 		}
 
@@ -223,17 +237,15 @@ public class BoosterManager {
 	}
 
 
-
 	public void create(String boosterName, String statistic, BoosterScope boosterScope, BoosterType boosterType, double multiplier, long duration, Player creator) {
 
 		ConfigurationSection bSection = createdBoosters.getConfig().getConfigurationSection(boosterName);
-		if(bSection == null) {
+		if (bSection == null) {
 			bSection = createdBoosters.getConfig().createSection(boosterName);
-		}else if (bSection.getName().equalsIgnoreCase(boosterName)) {
+		} else if (bSection.getName().equalsIgnoreCase(boosterName)) {
 			creator.sendMessage(ChatColor.RED + " Error: the booster " + ChatColor.BOLD + boosterName + ChatColor.RED + " already exists!");
 			return;
 		}
-
 
 
 		Map<String, Object> defaults = new LinkedHashMap<>();
@@ -244,24 +256,24 @@ public class BoosterManager {
 		defaults.put("duration", duration);
 
 
-		for(Map.Entry<String, Object> entries : defaults.entrySet()){
-			if(!bSection.isSet(entries.getKey())){
+		for (Map.Entry<String, Object> entries : defaults.entrySet()) {
+			if (!bSection.isSet(entries.getKey())) {
 				bSection.set(entries.getKey(), entries.getValue());
 			}
 		}
 
 		createdBoosters.save();
 		creator.sendMessage(ChatColor.GRAY + "Succesfully created a " + ChatColor.AQUA + ChatColor.BOLD +
-				boosterName + ChatColor.GRAY +  " booster!");
+				boosterName + ChatColor.GRAY + " booster!");
 
 	}
 
 	public void create(String boosterName, String statistic, BoosterScope boosterScope, BoosterType boosterType, Player creator) {
 
 		ConfigurationSection bSection = createdBoosters.getConfig().getConfigurationSection(boosterName);
-		if(bSection == null) {
+		if (bSection == null) {
 			bSection = createdBoosters.getConfig().createSection(boosterName);
-		}else if (bSection.getName().equalsIgnoreCase(boosterName)) {
+		} else if (bSection.getName().equalsIgnoreCase(boosterName)) {
 			creator.sendMessage(ChatColor.RED + " Error: the booster " + ChatColor.BOLD + boosterName + ChatColor.RED + " already exists!");
 			return;
 		}
@@ -274,39 +286,41 @@ public class BoosterManager {
 		defaults.put("duration", boosterType.getBoosterTime());
 
 
-		for(Map.Entry<String, Object> entries : defaults.entrySet()){
-			if(!bSection.isSet(entries.getKey())){
+		for (Map.Entry<String, Object> entries : defaults.entrySet()) {
+			if (!bSection.isSet(entries.getKey())) {
 				bSection.set(entries.getKey(), entries.getValue());
 			}
 		}
 
 		createdBoosters.save();
 		creator.sendMessage(ChatColor.GRAY + "Succesfully created a " + ChatColor.AQUA + ChatColor.BOLD +
-				boosterName + ChatColor.GRAY +  " booster!");
+				boosterName + ChatColor.GRAY + " booster!");
 
 	}
 
-	public Map<String, String> viewBoostersOfPlayer(Player player, Player sender){
+	public Map<String, String> viewBoostersOfPlayer(Player player, Player sender) {
 		Map<String, String> boosterList = new LinkedHashMap<>();
-			if(playerBoostersList.getConfig().getKeys(true).contains(player.getUniqueId().toString())){
-				ConfigurationSection boosterSection = playerBoostersList.getConfig().getConfigurationSection(player.getUniqueId().toString()).getConfigurationSection("boosters");
-				assert boosterSection != null;
-					for(Map.Entry<String, Object> boosters : boosterSection.getValues(true).entrySet()){
-						boosterList.put(boosters.getKey(), boosters.getValue().toString());
-
-					}
-				sender.sendMessage(boosterList.toString().replace('=', ':').replace('{', ' ').replace('}', ' '));
+		if (playerBoostersList.getConfig().getKeys(true).contains(player.getUniqueId().toString())) {
+			ConfigurationSection boosterSection = playerBoostersList.getConfig().getConfigurationSection(player.getUniqueId().toString()).getConfigurationSection("boosters");
+			assert boosterSection != null;
+			for (Map.Entry<String, Object> boosters : boosterSection.getValues(true).entrySet()) {
+				boosterList.put(boosters.getKey(), boosters.getValue().toString());
 
 			}
+			sender.sendMessage(boosterList.toString().replace('=', ':').replace('{', ' ').replace('}', ' '));
+
+		}
 		return boosterList;
 	}
 
+
 	@NotNull
-	public NetworkStatistic getStatisticFromName(Player player, @NotNull String name){
-		switch (name){
-			case "XP": return new PlayerExperience(player);
-			case "xp": return new PlayerExperience(player);
-			default: throw new IllegalArgumentException("No statistic found for name: " + name + " see method: getStatisticFromName");
+	public NetworkStatistic getStatisticFromName(Player player, @NotNull String name) {
+		Function<Player, NetworkStatistic> constructor = nameToStatMap.get(name);
+		if (constructor != null) {
+			return constructor.apply(player);
+		} else {
+			throw new IllegalArgumentException("No statistic found for name: " + name + " see method: getStatisticFromName");
 		}
 	}
 
@@ -338,24 +352,22 @@ public class BoosterManager {
 	}
 
 
-
-
-	public void initliazeStatisticsAvailableForBoosting(){
+	public void initliazeStatisticsAvailableForBoosting() {
 		NetworkStatistic.addStatistic(new PlayerExperience());
 	}
 
-	public int boosterCount(){
+	public int boosterCount() {
 		return totalBoosters.size();
 	}
 
-	public boolean checkIfPlayerHasBooster(Player player, String boosterName){
+	public boolean checkIfPlayerHasBooster(Player player, String boosterName) {
 		ConfigurationSection section = playerBoostersList.getConfig().getConfigurationSection(player.getUniqueId().toString());
 		ConfigurationSection boosterSection = section.getConfigurationSection("boosters");
 
 		boolean playerHasBooster = boosterSection.getKeys(true).stream().anyMatch(key -> key.equalsIgnoreCase(boosterName));
 
-		if(!playerHasBooster){
-			player.sendMessage(ChatColor.RED + " Error: the player " + ChatColor.BOLD + player.getName()  + ChatColor.RED + " doesn't have a " + ChatColor.BOLD + boosterName +
+		if (!playerHasBooster) {
+			player.sendMessage(ChatColor.RED + " Error: the player " + ChatColor.BOLD + player.getName() + ChatColor.RED + " doesn't have a " + ChatColor.BOLD + boosterName +
 					ChatColor.RED + " booster");
 			return false;
 		}
@@ -376,5 +388,33 @@ public class BoosterManager {
 
 	public Config getPlayerBoostersList() {
 		return playerBoostersList;
+	}
+
+	public void saveBoosterQueues() {
+		List<String> globalBoosterQueueAsString = new LinkedList<>();
+		List<String> personalBoosterQueueAsString = new LinkedList<>();
+
+		for (Booster<?> booster : boosterQueue.getGlobalBoosterQueue()) {
+			globalBoosterQueueAsString.add(booster.toString());
+		}
+		for (Booster<?> booster : boosterQueue.getPersonalBoosterQueue()) {
+			personalBoosterQueueAsString.add(booster.toString());
+		}
+
+		booster_cache.getConfig().set("globalQueue", globalBoosterQueueAsString);
+		booster_cache.getConfig().set("personalQueue", personalBoosterQueueAsString);
+		booster_cache.save();
+	}
+
+	public void loadBoosterQueue() {
+		List<String> globalBoosterQueueAsString = booster_cache.getConfig().getStringList("globalQueue");
+		List<String> personalBoosterQueueAsString = booster_cache.getConfig().getStringList("personalQueue");
+
+		for (String boosterAsString : globalBoosterQueueAsString) {
+			boosterQueue.getGlobalBoosterQueue().add(Booster.fromString(boosterAsString));
+		}
+		for (String boosterAsString : personalBoosterQueueAsString) {
+			boosterQueue.getPersonalBoosterQueue().add(Booster.fromString(boosterAsString));
+		}
 	}
 }
