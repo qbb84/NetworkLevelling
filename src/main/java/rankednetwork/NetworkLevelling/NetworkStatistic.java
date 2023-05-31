@@ -15,11 +15,14 @@ public abstract class NetworkStatistic {
 	protected int value;
 	protected String name;
 	protected String type;
+	protected Player player;
 
 	public NetworkStatistic(){}
 
-	public NetworkStatistic(Player player) {
-
+	public NetworkStatistic(Player player, String name, String type) {
+		this.player = player;
+		this.name = name;
+		this.type = type;
 	}
 
 	public abstract int getValue(Player player);
@@ -36,6 +39,10 @@ public abstract class NetworkStatistic {
 
 	public abstract String setType(String type);
 
+
+	public Player getPlayer() {
+		return player;
+	}
 
 	public String getStatistic() {
 		return null;
