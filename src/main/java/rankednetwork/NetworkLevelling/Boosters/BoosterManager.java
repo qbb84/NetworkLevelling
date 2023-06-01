@@ -13,10 +13,7 @@ import rankednetwork.NetworkLevelling.Notifiers.GameNotifier;
 import rankednetwork.NetworkLevelling.PlayerExperience;
 import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
-import java.awt.*;
 import java.util.*;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 /**
@@ -25,23 +22,16 @@ import java.util.function.Function;
 public class BoosterManager {
 
 	private static BoosterManager instance = null;
-
-	private Booster<? extends NetworkStatistic> activeBooster;
-
-	private SortedSet<Booster<? extends NetworkStatistic>> totalBoosters = new TreeSet<>(new BoosterDurationComparator());
-	private SortedSet<Booster<? extends NetworkStatistic>> activeBoosters = new TreeSet<>(new BoosterDurationComparator());
-
-
-	private Map<Booster<? extends NetworkStatistic>, Long> boosterActivationTimes = new HashMap<>();
-
+	private final SortedSet<Booster<? extends NetworkStatistic>> totalBoosters = new TreeSet<>(new BoosterDurationComparator());
+	private final SortedSet<Booster<? extends NetworkStatistic>> activeBoosters = new TreeSet<>(new BoosterDurationComparator());
+	private final Map<Booster<? extends NetworkStatistic>, Long> boosterActivationTimes = new HashMap<>();
 	private final Config createdBoosters = new Config(Main.getMain(), "created_boosters");
 	private final Config playerBoostersList = new Config(Main.getMain(), "player_boosters_list");
 	private final Config booster_cache = new Config(Main.getMain(), "booster_queue_cache");
-
 	private final Map<String, Function<Player, NetworkStatistic>> nameToStatMap;
-
-
 	BoosterQueue boosterQueue = new BoosterQueue();
+	private Booster<? extends NetworkStatistic> activeBooster;
+
 
 	private BoosterManager() {
 		nameToStatMap = new HashMap<>();
@@ -67,14 +57,14 @@ public class BoosterManager {
 	public <T extends NetworkStatistic> void queueBooster(Booster<T> booster, Player player, String boosterName) {
 		if (!checkIfPlayerHasBooster(player, boosterName)) return;
 
-		if(booster.getScope().equals(BoosterScope.GLOBAL)) {
+		if (booster.getScope().equals(BoosterScope.GLOBAL)) {
 			for (Booster<?> boosters : boosterQueue.getGlobalBoosterQueue()) {
 				if (boosters.getBoosterName().equalsIgnoreCase(this.getBoosterForPlayer(player, boosterName).getBoosterName())) {
 					player.sendMessage("You can only queue 1 of the same booster at a time!");
 					return;
 				}
 			}
-		}else{
+		} else {
 			for (Booster<?> boosters : boosterQueue.getPersonalBoosterQueue()) {
 				if (boosters.getPlayer().getUniqueId().equals(player.getUniqueId())) {
 					player.sendMessage("You can only queue 1 personal booster at a time");
@@ -82,7 +72,6 @@ public class BoosterManager {
 				}
 			}
 		}
-
 		if (booster.getBoosterType() == BoosterType.CUSTOM) {
 			Pair<Double, Long> customValues = getConfigValuesForCustomBooster(boosterName);
 			booster.setMultiplier(customValues.first);
@@ -132,7 +121,7 @@ public class BoosterManager {
 	public void checkBoostersRunnable() {
 		int delay = 1200;
 		int period = 1200;
-		Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getMain(), boosterQueue.checkAndActivateNextBooster(), delay, period);
+		Bukkit.getScheduler().runTaskTimer(Main.getMain(), boosterQueue.checkAndActivateNextBooster(), delay, period);
 	}
 
 

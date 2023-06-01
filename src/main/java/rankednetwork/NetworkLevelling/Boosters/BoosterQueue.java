@@ -1,10 +1,13 @@
 package rankednetwork.NetworkLevelling.Boosters;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActivationEvent;
+import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActiveEvent;
 import rankednetwork.NetworkLevelling.Config.DiscordConfigDefaults;
 import rankednetwork.NetworkLevelling.Notifiers.GameNotifier;
 import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
@@ -13,10 +16,9 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class BoosterQueue {
-	private Queue<Booster<?>> personalBoosterQueue = new LinkedList<>();
-	private Queue<Booster<?>> globalBoosterQueue = new LinkedList<>();
 
-	//Serialize all booster releated queues
+	private final Queue<Booster<?>> personalBoosterQueue = new LinkedList<>();
+	private final Queue<Booster<?>> globalBoosterQueue = new LinkedList<>();
 
 
 	public void addBooster(Booster<?> booster) {
@@ -54,11 +56,9 @@ public class BoosterQueue {
 			}
 			long boosterDuration;
 			if (b.isActive()) {
-				// If the booster is active, use the remaining time instead of the total duration
 				boosterDuration = b.getRemainingTime();
 			} else {
-				// If the booster is not active, use its total duration
-				boosterDuration = b.getDurationInMinutes();  // This is in minutes
+				boosterDuration = b.getDurationInMinutes();
 			}
 			totalTime += boosterDuration;
 		}
@@ -104,19 +104,17 @@ public class BoosterQueue {
 		return new Runnable() {
 			@Override
 			public void run() {
-				// Check and activate next global booster
 				checkAndActivateBoosterInQueue(globalBoosterQueue);
-				// Check and activate next personal booster for each player
 				checkAndActivateBoosterInQueue(personalBoosterQueue);
 			}
 
-
 			private void checkAndActivateBoosterInQueue(Queue<Booster<?>> boosterQueue) {
+				//TODO Update the values for the first in the queue peek().getStatistic
 				if (!boosterQueue.isEmpty() && boosterQueue.peek().getRemainingTime() <= 0) {
-					// Remove the expired booster
 					Booster<?> expiredBooster = boosterQueue.poll();
 					BoosterManager.getInstance().getBoosterActivationTimes().remove(expiredBooster);
 					expiredBooster.getPlayer().sendMessage(ChatColor.GOLD + " Your booster has expired!");
+
 
 					if (!boosterQueue.isEmpty()) {
 						// If there's another booster in the queue, activate it
@@ -128,19 +126,43 @@ public class BoosterQueue {
 						String boosterName = nextBooster.getBoosterName();
 						player.sendMessage(ChatColor.YELLOW + "Your booster " + boosterName + " is now being used!");
 
+
 						// Send notification message
 						GameNotifier gameNotifier = new GameNotifier();
 						gameNotifier.sendActivatedMessage(nextBooster);
 
 						// Send discord notification
-						if(nextBooster.getScope().equals(BoosterScope.GLOBAL)){
+						if (nextBooster.getScope().equals(BoosterScope.GLOBAL)) {
 							sendGlobalDiscordMessage(nextBooster);
 						}
-						//TODO Move discord to a method so that when players that activate boosters first in queue get notified.
-						// Record the activation time
 						long activationTime = System.currentTimeMillis();
 						BoosterManager.getInstance().getBoosterActivationTimes().put(nextBooster, activationTime);
+
+						//Call custom event
+						BoosterActivationEvent activationEvent = new BoosterActivationEvent(
+								nextBooster.getPlayer(),
+								nextBooster.getBoosterName(),
+								nextBooster.getBoostAmount(),
+								nextBooster.getScope(),
+								nextBooster.getBoosterType(),
+								nextBooster.getStatistic());
+						Bukkit.getPluginManager().callEvent(activationEvent);
+
+
 					}
+				}
+
+				if (!boosterQueue.isEmpty() && boosterQueue.peek().getRemainingTime() > 0) {
+					Booster<?> activeBooster = boosterQueue.peek();
+
+					BoosterActiveEvent activeEvent = new BoosterActiveEvent(
+							activeBooster.getPlayer(),
+							activeBooster.getBoosterName(),
+							activeBooster.getBoostAmount(),
+							activeBooster.getScope(),
+							activeBooster.getBoosterType(),
+							activeBooster.getStatistic());
+					Bukkit.getPluginManager().callEvent(activeEvent);
 				}
 			}
 		};
@@ -152,12 +174,11 @@ public class BoosterQueue {
 		ConfigurationSection general = discordConfigDefaults.getConfigurationSection("general");
 
 
-
-		if(general == null){
+		if (general == null) {
 			general = discordConfigDefaults.createSection("general");
 		}
 
-		if(!general.isSet("webhook_url")){
+		if (!general.isSet("webhook_url")) {
 			general.set("webhook_url", "");
 		}
 

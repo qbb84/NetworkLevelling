@@ -17,7 +17,6 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // ( locally testing 27/05/23 )
         main = this;
         new DiscordConfigDefaults();
         getCommand("booster").setExecutor(new BoosterCommand());
