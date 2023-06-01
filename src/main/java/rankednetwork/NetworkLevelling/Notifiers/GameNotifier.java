@@ -7,5 +7,6 @@ public class GameNotifier implements Notifier {
 
 	@Override
 	public void sendActivatedMessage(Booster<? extends NetworkStatistic> booster) {
+		//TODO Setup notifier messages, check size of queue before
 	}
 }
