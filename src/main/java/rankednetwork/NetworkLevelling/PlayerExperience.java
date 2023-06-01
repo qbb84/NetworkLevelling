@@ -17,6 +17,7 @@ public class PlayerExperience extends NetworkStatistic {
 	private final List<ExperienceChangeListener> listeners = new ArrayList<>();
 	PlayerLevelManager levelManager;
 
+
 	public PlayerExperience() {
 		this(null);
 	}
@@ -36,7 +37,6 @@ public class PlayerExperience extends NetworkStatistic {
 	public int getValue(Player player) {
 		Pair<ConfigurationSection, Boolean> tryFindPlayer = isInConfig(player);
 		if (!tryFindPlayer.second) {
-			player.sendMessage("GET VALUE");
 			return 0;
 		}
 		ConfigurationSection experience = tryFindPlayer.first;
@@ -134,4 +134,5 @@ public class PlayerExperience extends NetworkStatistic {
 				", player=" + player +
 				'}';
 	}
+
 }

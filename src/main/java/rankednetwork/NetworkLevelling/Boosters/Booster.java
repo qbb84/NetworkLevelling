@@ -24,7 +24,7 @@ public class Booster<T extends NetworkStatistic> {
 	private long activationTime = 0;
 	private boolean isActive;
 
-	private Status status = Status.INACTIVE;
+	private Status status;
 
 
 	public Booster(Player player, T statistic, BoosterType boosterType, BoosterScope scope, String boosterName) {
@@ -35,6 +35,7 @@ public class Booster<T extends NetworkStatistic> {
 		this.scope = scope;
 		this.boosterType = boosterType;
 		this.boosterName = boosterName;
+		this.status = Status.INACTIVE;
 	}
 
 	public static Booster<?> fromString(String boosterString) {
@@ -49,7 +50,7 @@ public class Booster<T extends NetworkStatistic> {
 		long activationTime = Long.parseLong(parts[6]);
 		double boostAmount = Double.parseDouble(parts[7]);
 		String boosterName = parts[8];
-		NetworkStatistic statistic = BoosterManager.getInstance().getStatisticFromName(player, parts[9]);// TODO
+		NetworkStatistic statistic = BoosterManager.getInstance().getStatisticFromName(player, parts[9]);
 		Booster<?> booster = new Booster<>(player, statistic, boosterType, scope, boosterName);
 		booster.setDuration(maxDuration);
 		booster.setMultiplier(boostAmount);
@@ -72,7 +73,7 @@ public class Booster<T extends NetworkStatistic> {
 	}
 
 	public Status getStatus() {
-		return status;
+		return this.status;
 	}
 
 	public void setStatus(Status status) {
@@ -146,12 +147,16 @@ public class Booster<T extends NetworkStatistic> {
 		return statistic;
 	}
 
+
 	public enum Status {
 
-		ACTIVE(Color.GREEN + "ACTIVE"),
-		INACTIVE(Color.RED + "INACTIVE");
+		ACTIVE(Color.GREEN + "Active"),
+		INACTIVE(Color.BLACK + "Inactive"),
+		INQUEUE(Color.YELLOW + "Inqueue"),
+		EXPIRED(Color.RED + "Expired");
 
 		final String statusName;
+		Status status;
 
 		Status(String statusName) {
 			this.statusName = statusName;
@@ -160,6 +165,7 @@ public class Booster<T extends NetworkStatistic> {
 		public String getStatusName() {
 			return statusName;
 		}
+
 	}
 }
 

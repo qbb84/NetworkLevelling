@@ -6,15 +6,18 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import rankednetwork.Main;
+import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActivationEvent;
+import rankednetwork.NetworkLevelling.Boosters.Events.BoosterQueueEvent;
 import rankednetwork.NetworkLevelling.Config.Config;
 import rankednetwork.NetworkLevelling.NetworkStatistic;
 import rankednetwork.NetworkLevelling.Notifiers.DiscordNotifier;
-import rankednetwork.NetworkLevelling.Notifiers.GameNotifier;
 import rankednetwork.NetworkLevelling.PlayerExperience;
 import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
 import java.util.*;
 import java.util.function.Function;
+
+import static rankednetwork.NetworkLevelling.EventManager.registerEvents;
 
 /**
  * Singleton class used for managing Boosters
@@ -81,20 +84,18 @@ public class BoosterManager {
 		}
 		player.sendMessage(String.valueOf(booster.getDuration()));
 
-		GameNotifier gameNotifier = new GameNotifier();
 
 		switch (booster.getScope()) {
 			case PERSONAL:
-				gameNotifier.sendActivatedMessage(booster);
 				totalBoosters.add(booster);
 				boolean wasPersonalQueueEmpty = boosterQueue.getPersonalBoosterQueue().isEmpty();
 				boosterQueue.addBooster(booster);
 				if (wasPersonalQueueEmpty) {
-					player.sendMessage(ChatColor.YELLOW + "Your personal booster " + boosterName + " is now being used!");
-					gameNotifier.sendActivatedMessage(booster);
 					booster.activate();
+					registerEvents(new BoosterActivationEvent(player, boosterName, booster));
 				} else {
-					player.sendMessage(ChatColor.YELLOW + "Your personal booster " + boosterName + " is now being queued!");
+					booster.setStatus(Booster.Status.INQUEUE);
+					registerEvents(new BoosterQueueEvent(player, boosterName, booster));
 				}
 				break;
 			case GLOBAL:
@@ -102,12 +103,11 @@ public class BoosterManager {
 				boolean wasGlobalQueueEmpty = boosterQueue.getGlobalBoosterQueue().isEmpty();
 				boosterQueue.addBooster(booster);
 				if (wasGlobalQueueEmpty) {
-					player.sendMessage(ChatColor.YELLOW + "Your global booster " + boosterName + " is now being used!");
-					gameNotifier.sendActivatedMessage(booster);
 					booster.activate();
-					boosterQueue.sendGlobalDiscordMessage(booster);
+					registerEvents(new BoosterActivationEvent(player, boosterName, booster));
 				} else {
-					player.sendMessage(ChatColor.YELLOW + "Your global booster " + boosterName + " is now being queued!");
+					booster.setStatus(Booster.Status.INQUEUE);
+					registerEvents(new BoosterQueueEvent(player, boosterName, booster));
 				}
 				break;
 			default:
@@ -316,7 +316,6 @@ public class BoosterManager {
 	public Booster<?> getBoosterForPlayer(@NotNull Player player, String boosterName) {
 		String playerUniqueId = String.valueOf(player.getUniqueId());
 		ConfigurationSection playerSection = playerBoostersList.getConfig().getConfigurationSection(playerUniqueId);
-
 		if (playerSection == null) {
 			// The player doesn't have any boosters
 			return null;

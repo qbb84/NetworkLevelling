@@ -2,17 +2,17 @@ package rankednetwork.NetworkLevelling.Boosters;
 
 public enum BoosterType {
 
-	MINOR("Minor", 60, 0.1),
-	HALF("Half", 60, 0.5),
-	DOUBLE("Double", 60, 1.0),
-	TRIPLE("Triple", 30, 2.0),
+	MINOR("Minor", 60, 1.1),
+	HALF("Half", 60, 1.5),
+	DOUBLE("Double", 60, 2.0),
+	TRIPLE("Triple", 30, 3.0),
 	CUSTOM("Custom", 0, 0.0);
 
 	private final long timeInMinutes;
 	private final double boostIncreasePercentage;
 	private final String boosterTypeName;
 
-	BoosterType(String boosterTypeName, long timeInMinutes, double boostIncreasePercentage){
+	BoosterType(String boosterTypeName, long timeInMinutes, double boostIncreasePercentage) {
 		this.boosterTypeName = boosterTypeName;
 		this.boostIncreasePercentage = boostIncreasePercentage;
 		this.timeInMinutes = timeInMinutes;
@@ -23,7 +23,6 @@ public enum BoosterType {
 	}
 
 
-
 	public String getBoosterTypeName() {
 		return boosterTypeName;
 	}
@@ -32,7 +31,6 @@ public enum BoosterType {
 	public double getBoostIncreasePercentage() {
 		return boostIncreasePercentage;
 	}
-
 
 
 	@Override
