@@ -1,50 +1,31 @@
 package rankednetwork.NetworkLevelling.Boosters.Events;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
+import rankednetwork.NetworkLevelling.Boosters.Booster;
 import rankednetwork.NetworkLevelling.Boosters.BoosterScope;
 import rankednetwork.NetworkLevelling.Boosters.BoosterType;
 import rankednetwork.NetworkLevelling.NetworkStatistic;
 
-public class BoosterActivationEvent extends Event {
+public class BoosterActivationEvent extends BoosterEvent {
 
 	private static final HandlerList handlers = new HandlerList();
 
-	private final Player player;
-	private final String boosterName;
-	private final double boosterPower;
-	private final NetworkStatistic statistic;
-
-	public BoosterActivationEvent(Player player, String boosterName, double boosterPower, BoosterScope scope, BoosterType type, NetworkStatistic statistic) {
-		this.player = player;
-		this.boosterName = boosterName;
-		this.boosterPower = boosterPower;
-		this.statistic = statistic;
+	public BoosterActivationEvent(@NotNull Player player, @NotNull String boosterName, @NotNull Booster<?> booster) {
+		super(player, boosterName, booster);
 	}
 
-	public static HandlerList getHandlerList() {
+	public BoosterActivationEvent(Player player, String boosterName, double boosterPower, BoosterScope scope, BoosterType type, NetworkStatistic statistic, Booster.Status status) {
+		super(player, boosterName, boosterPower, scope, type, statistic, status);
+	}
+
+	public static @NotNull HandlerList getHandlerList() {
 		return handlers;
 	}
 
-	public Player getPlayer() {
-		return player;
-	}
 
-	public String getBoosterName() {
-		return boosterName;
-	}
-
-	public double getBoosterPower() {
-		return boosterPower;
-	}
-
-	public NetworkStatistic getStatistic() {
-		return statistic;
-	}
-
-	@Override
-	public HandlerList getHandlers() {
+	public @NotNull HandlerList getHandlers() {
 		return handlers;
 	}
 }

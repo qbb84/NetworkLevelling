@@ -1,20 +1,26 @@
 package rankednetwork.NetworkLevelling;
 
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
+import rankednetwork.NetworkLevelling.Boosters.Booster;
+import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
+import rankednetwork.NetworkLevelling.Boosters.BoosterScope;
+import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActivationEvent;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActiveEvent;
+import rankednetwork.NetworkLevelling.Boosters.Events.BoosterExpirationEvent;
 import rankednetwork.NetworkLevelling.Config.Config;
+import rankednetwork.NetworkLevelling.Notifiers.GameNotifier;
+import rankednetwork.NetworkLevelling.Notifiers.GlobalBoosterDiscordNotifier;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 
 public class PlayerLevellingEvents implements Listener {
 
@@ -48,7 +54,8 @@ public class PlayerLevellingEvents implements Listener {
 			}
 		}
 
-		p.setLevel(PlayerLevelManager.getInstance().getCurrentLevel(p));
+		PlayerExperience experience = new PlayerExperience();
+		experience.updateExperienceBar(p);
 
 
 		playerLevels.save();
@@ -56,32 +63,50 @@ public class PlayerLevellingEvents implements Listener {
 	}
 
 	@EventHandler
-	public void onBreak(BlockBreakEvent event) {
-		if (event.getBlock().getType().equals(Material.OAK_LOG) && event.getPlayer().getGameMode().equals(GameMode.SURVIVAL)) {
-			Player p = event.getPlayer();
-			PlayerExperience experience = new PlayerExperience();
-			ExperienceChangeListener listener = PlayerLevelManager.getInstance();
-			experience.addExperienceChangeListener(listener);
+	public void onBoosterActive(BoosterActiveEvent event) {
 
+		UUID playerUUID = event.getPlayer().getUniqueId();
 
-			experience.changeValue(p, 500);
-			p.sendMessage(String.valueOf(experience.getValue(p)));
-			p.sendMessage(String.valueOf(experience.getPercentageToNextLevel(p)));
+		// Obtain the Player object from the server using the UUID
+		Player p = Bukkit.getServer().getPlayer(playerUUID);
+
+		// Check if the Player object is null or if the player is not online
+		if (p == null || !p.isOnline()) {
+			Bukkit.broadcastMessage("Player is not online or could not be found.");
+			return;
 		}
-	}
+		//Send messages
 
-	@EventHandler
-	public void onBoosterActivation(BoosterActiveEvent event) {
-		Player p = event.getPlayer();
 		PlayerExperience experience = new PlayerExperience();
 		ExperienceChangeListener listener = PlayerLevelManager.getInstance();
 		experience.addExperienceChangeListener(listener);
 
-		experience.changeValue(p, 500);
+		double boostPercentage = event.getBoosterPower();
+		int playerLevel = PlayerLevelManager.getInstance().getCurrentLevel(event.getPlayer());
+		double xpPerMinute = 600.0 * playerLevel * boostPercentage;
+		int bound = Math.max(playerLevel / 5 * 10, 1);
+		int randomXP = new Random().nextInt(bound);
+		int xp = (randomXP > 0) ? (int) xpPerMinute + randomXP : (int) xpPerMinute;
+
+		experience.changeValue(p, xp);
+		experience.updateExperienceBar(p);
 		p.sendMessage(String.valueOf(experience.getValue(p)));
 		p.sendMessage(String.valueOf(experience.getPercentageToNextLevel(p)));
 
+	}
 
+	@EventHandler
+	public void onBoosterExpire(BoosterExpirationEvent event) {
+		new GameNotifier().sendActivatedMessage(event.getBooster());
+	}
+
+	@EventHandler
+	public void onBoosterActivation(BoosterActivationEvent event) {
+		if (event.getScope().equals(BoosterScope.GLOBAL)) {
+			Booster<?> booster = BoosterManager.getInstance().getBoosterForPlayer(event.getPlayer(), event.getBoosterName());
+			new GlobalBoosterDiscordNotifier().sendGlobalDiscordMessage(booster);
+			new GameNotifier().sendActivatedMessage(booster);
+		}
 	}
 
 

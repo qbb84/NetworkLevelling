@@ -1,9 +1,9 @@
 package rankednetwork.NetworkLevelling.Notifiers;
 
-import rankednetwork.NetworkLevelling.Boosters.Booster;
-import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
-import rankednetwork.NetworkLevelling.NetworkStatistic;
 import org.bukkit.Bukkit;
+import rankednetwork.NetworkLevelling.Boosters.Booster;
+import rankednetwork.NetworkLevelling.NetworkStatistic;
+import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,25 +22,25 @@ public class DiscordNotifier extends DiscordWebhook implements Notifier {
 	}
 
 	@Override
-	public void sendActivatedMessage(Booster<? extends NetworkStatistic> booster)  {
-		try{
+	public void sendActivatedMessage(Booster<? extends NetworkStatistic> booster) {
+		try {
 			webhook.execute();
-		}catch (IOException ioException){
+		} catch (IOException ioException) {
 			Bukkit.getServer().getLogger().severe(Arrays.toString(ioException.getStackTrace()));
 		}
 	}
 
-	public String getWebhookURL()  {
+	public String getWebhookURL() {
 		return this.webHookURL;
-	}
-
-	public DiscordWebhook getWebhook() {
-		return webhook;
 	}
 
 	public void setWebhookURL(String webhookURL) {
 		this.webHookURL = webhookURL;
 		this.webhook = new DiscordWebhook(webhookURL);
+	}
+
+	public DiscordWebhook getWebhook() {
+		return webhook;
 	}
 
 	public EmbedObject getEmbed() {
@@ -49,9 +49,8 @@ public class DiscordNotifier extends DiscordWebhook implements Notifier {
 
 	public void setEmbed(EmbedObject object) {
 		this.object = object;
-		webhook.addEmbed(getEmbed());;
+		webhook.addEmbed(getEmbed());
 	}
-
 
 
 }
