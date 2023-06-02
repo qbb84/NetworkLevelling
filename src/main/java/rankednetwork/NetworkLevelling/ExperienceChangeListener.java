@@ -1,7 +1,7 @@
 package rankednetwork.NetworkLevelling;
 
-import org.bukkit.entity.Player;
+import java.util.UUID;
 
 public interface ExperienceChangeListener {
-	void onExperienceChange(Player player, int newValue);
+	void onExperienceChange(UUID playerUUID, int newValue);
 }

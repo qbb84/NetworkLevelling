@@ -7,6 +7,7 @@ import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 
 public class DiscordNotifier extends DiscordWebhook implements Notifier {
 
@@ -22,12 +23,20 @@ public class DiscordNotifier extends DiscordWebhook implements Notifier {
 	}
 
 	@Override
-	public void sendActivatedMessage(Booster<? extends NetworkStatistic> booster) {
+	public void sendNotification(Booster<? extends NetworkStatistic> booster) {
 		try {
 			webhook.execute();
 		} catch (IOException ioException) {
 			Bukkit.getServer().getLogger().severe(Arrays.toString(ioException.getStackTrace()));
 		}
+	}
+
+	/**
+	 * @param uuid
+	 */
+	@Override
+	public void sendNotification(UUID uuid) {
+
 	}
 
 	public String getWebhookURL() {

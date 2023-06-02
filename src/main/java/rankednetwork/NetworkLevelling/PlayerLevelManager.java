@@ -1,10 +1,14 @@
 package rankednetwork.NetworkLevelling;
 
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import rankednetwork.Main;
 import rankednetwork.NetworkLevelling.Config.Config;
+import rankednetwork.NetworkLevelling.Events.PlayerLevelUpEvent;
+
+import java.util.UUID;
 
 public class PlayerLevelManager implements ExperienceChangeListener {
 
@@ -24,37 +28,42 @@ public class PlayerLevelManager implements ExperienceChangeListener {
 	}
 
 	@Override
-	public void onExperienceChange(Player player, int newExperience) {
-		int currentLevel = getCurrentLevel(player);
+	public void onExperienceChange(UUID playerUUID, int newExperience) {
+		//TODO Fix latest experienced to get the latest !TOTAL
+		int currentLevel = getCurrentLevel(playerUUID);
 		int newLevel = calculateLevel(newExperience);
+		Player player = Bukkit.getPlayer(playerUUID);
 		player.sendMessage("current: " + currentLevel + " newLevel: " + newLevel + " experience: " + newExperience);
 		if (newLevel != currentLevel && newLevel > 0) {
-			setCurrentLevel(player, newLevel);
-			// Trigger any other level-up behaviors here
-			player.sendMessage("You have levelled up to " + newLevel);
-			player.setLevel(PlayerLevelManager.getInstance().getCurrentLevel(player));
+			setCurrentLevel(playerUUID, newLevel);
+
+			EventManager.registerEvents(new PlayerLevelUpEvent(playerUUID, getCurrentLevel(playerUUID), getExperienceForLevel(newLevel), newExperience, currentLevel, newLevel));
+
+			player.setLevel(PlayerLevelManager.getInstance().getCurrentLevel(playerUUID));
+
+
 		}
 	}
 
 	public int calculateLevel(int experience) {
 		int level = 1;
-		int xpForNextLevel = 3500;
+		int xpForNextLevel = 3000;
 		while (experience >= xpForNextLevel) {
 			experience -= xpForNextLevel;
 			level++;
-			xpForNextLevel += 3500;
+			xpForNextLevel += 3000;
 		}
 		return level;
 	}
 
-	public int getCurrentLevel(Player player) {
-		ConfigurationSection playerSection = playerLevels.getConfig().getConfigurationSection(player.getUniqueId().toString());
+	public int getCurrentLevel(UUID playerUUID) {
+		ConfigurationSection playerSection = playerLevels.getConfig().getConfigurationSection(playerUUID.toString());
 		return playerSection.getInt("level");
 	}
 
 
-	public void setCurrentLevel(Player player, int newLevel) {
-		ConfigurationSection playerSection = playerLevels.getConfig().getConfigurationSection(player.getUniqueId().toString());
+	public void setCurrentLevel(UUID playerUUID, int newLevel) {
+		ConfigurationSection playerSection = playerLevels.getConfig().getConfigurationSection(playerUUID.toString());
 		playerSection.set("level", newLevel);
 		playerLevels.save();
 	}
@@ -62,7 +71,7 @@ public class PlayerLevelManager implements ExperienceChangeListener {
 	public int getExperienceForLevel(int level) {
 		int totalXp = 0;
 		for (int i = 1; i < level; i++) {
-			totalXp += 3500 + 3500 * (i - 1);
+			totalXp += 3000 + 3000 * (i - 1);
 		}
 		return totalXp;
 	}

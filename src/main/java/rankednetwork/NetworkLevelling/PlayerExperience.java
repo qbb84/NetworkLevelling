@@ -5,15 +5,17 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import rankednetwork.NetworkLevelling.Boosters.Pair;
+import rankednetwork.NetworkLevelling.Events.ExperienceChangeEvent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @BoosterMetadata(name = "XP")
 public class PlayerExperience extends NetworkStatistic {
 
 
-	private final Player player;
+	private final UUID player;
 	private final List<ExperienceChangeListener> listeners = new ArrayList<>();
 	PlayerLevelManager levelManager;
 
@@ -23,7 +25,7 @@ public class PlayerExperience extends NetworkStatistic {
 	}
 
 
-	public PlayerExperience(Player player) {
+	public PlayerExperience(UUID player) {
 		super(player, "PlayerExperience", "XP");
 		this.player = player;
 		this.levelManager = PlayerLevelManager.getInstance();
@@ -51,7 +53,11 @@ public class PlayerExperience extends NetworkStatistic {
 		tryFindPlayer.first.set("experience", value);
 		levelManager.getPlayerLevelsConf().save();
 		this.value = value;
-		notifyExperienceChange(player, value);
+		notifyExperienceChange(player.getUniqueId(), value);
+
+		int experience = tryFindPlayer.first.getInt("experience");
+		int level = tryFindPlayer.first.getInt("level");
+		EventManager.registerEvents(new ExperienceChangeEvent(player.getUniqueId(), level, experience, value, PlayerLevelManager.getInstance(), ExperienceChangeEvent.MethodType.SET));
 
 		updateExperienceBar(player);
 	}
@@ -63,9 +69,16 @@ public class PlayerExperience extends NetworkStatistic {
 		tryFindPlayer.first.set("experience", getValue(player) + delta);
 		levelManager.getPlayerLevelsConf().save();
 		this.value = getValue(player);
-		notifyExperienceChange(player, getValue(player));
+		notifyExperienceChange(player.getUniqueId(), getValue(player));
+
+		int experience = tryFindPlayer.first.getInt("experience");
+		int level = tryFindPlayer.first.getInt("level");
+
+		EventManager.registerEvents(new ExperienceChangeEvent(player.getUniqueId(), level, experience, delta, PlayerLevelManager.getInstance(), ExperienceChangeEvent.MethodType.CHANGED));
 
 		updateExperienceBar(player);
+
+
 	}
 
 	@Override
@@ -99,7 +112,7 @@ public class PlayerExperience extends NetworkStatistic {
 
 	public double getPercentageToNextLevel(Player player) {
 		int currentExperience = getValue(player);
-		int currentLevel = levelManager.getCurrentLevel(player);
+		int currentLevel = levelManager.getCurrentLevel(player.getUniqueId());
 		int experienceForCurrentLevel = levelManager.getExperienceForLevel(currentLevel);
 		int experienceForNextLevel = levelManager.getExperienceForLevel(currentLevel + 1);
 
@@ -109,11 +122,11 @@ public class PlayerExperience extends NetworkStatistic {
 		return (double) experienceInCurrentLevel / totalExperienceInLevel * 100;
 	}
 
-	private void notifyExperienceChange(Player player, int newValue) {
+	private void notifyExperienceChange(UUID playerUUID, int newValue) {
 		for (ExperienceChangeListener listener : listeners) {
-			listener.onExperienceChange(player, newValue);
+			listener.onExperienceChange(playerUUID, newValue);
 		}
-		PlayerLevelManager.getInstance().onExperienceChange(player, newValue);
+		PlayerLevelManager.getInstance().onExperienceChange(playerUUID, newValue);
 	}
 
 	public void updateExperienceBar(Player player) {
