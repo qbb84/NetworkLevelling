@@ -1,7 +1,6 @@
 package rankednetwork.NetworkLevelling.Config;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import rankednetwork.Main;
@@ -71,11 +70,11 @@ public class MainConfigDefaults {
 		}
 
 		final Map<String, Object> activation_defaults = new HashMap<>();
-		activation_defaults.put("Color", Color.AQUA);
+		activation_defaults.put("Color", "RGB");
 		activation_defaults.put("Random_Color", false);
-		activation_defaults.put("Title", "");
-		activation_defaults.put("Thumbnail", "");
-		activation_defaults.put("Description", "");
+		activation_defaults.put("Title", "Default");
+		activation_defaults.put("Thumbnail", "https://cdn-icons-png.flaticon.com/512/79/79557.png");
+		activation_defaults.put("Description", "Default");
 
 		for (Map.Entry<String, Object> activations : activation_defaults.entrySet()) {
 			if (!activationSection.isSet(activations.getKey())) {
@@ -84,14 +83,19 @@ public class MainConfigDefaults {
 			}
 		}
 
+		activationSection.set("Color.ALPHA", 250);
+		activationSection.set("Color.RED", 55);
+		activationSection.set("Color.GREEN", 55);
+		activationSection.set("Color.BLUE", 55);
+
 		ConfigurationSection footer = activationSection.getConfigurationSection("footer");
 		if (footer == null) {
 			footer = activationSection.createSection("footer");
 			mainConfigSettings.save();
 		}
 		Map<String, Object> footerDefaults = new HashMap<>();
-		footerDefaults.put("message", "");
-		footerDefaults.put("image", "");
+		footerDefaults.put("message", "Default");
+		footerDefaults.put("image", "https://cdn-icons-png.flaticon.com/512/79/79557.png");
 
 		for (Map.Entry<String, Object> footers : footerDefaults.entrySet()) {
 			if (!footer.isSet(footers.getKey())) {
@@ -114,6 +118,12 @@ public class MainConfigDefaults {
 				mainConfigSettings.save();
 			}
 		}
+
+		deactivationSection.set("Color.ALPHA", 250);
+		deactivationSection.set("Color.RED", 55);
+		deactivationSection.set("Color.GREEN", 55);
+		deactivationSection.set("Color.BLUE", 55);
+
 
 		ConfigurationSection expiry_footer = deactivationSection.getConfigurationSection("footer");
 		if (expiry_footer == null) {
@@ -144,9 +154,9 @@ public class MainConfigDefaults {
 		settings.setComments("boosters", boostersComments);
 
 		final Map<String, Object> boosterDefaults = new HashMap<>();
-		boosterDefaults.put("queue_prompt", "");
-		boosterDefaults.put("active_prompt", "");
-		boosterDefaults.put("expired_prompt", "");
+		boosterDefaults.put("queue_prompt", "Default");
+		boosterDefaults.put("active_prompt", "Default");
+		boosterDefaults.put("expired_prompt", "Default");
 
 
 		for (Map.Entry<String, Object> defaults : boosterDefaults.entrySet()) {
@@ -170,7 +180,7 @@ public class MainConfigDefaults {
 		settings.setComments("levelling", levellingComments);
 
 		final Map<String, Object> levellingefaults = new HashMap<>();
-		levellingefaults.put("level_up_prompt", "");
+		levellingefaults.put("level_up_prompt", "Default");
 		levellingefaults.put("Base_XP", 3000);
 		levellingefaults.put("Base_XP_Increase", 3000);
 		levellingefaults.put("Scaling", "LINEAR");
@@ -209,6 +219,7 @@ public class MainConfigDefaults {
 		return mainConfigSettings.getConfig();
 
 	}
+
 
 	public static String translateString(String absoluteConfigStringLocation, HashMap<String, Object> replacement) {
 		String result = getMainSettings().getString(absoluteConfigStringLocation);

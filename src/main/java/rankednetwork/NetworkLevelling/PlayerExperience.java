@@ -77,8 +77,6 @@ public class PlayerExperience extends NetworkStatistic {
 		EventManager.registerEvents(new ExperienceChangeEvent(player.getUniqueId(), level, experience, delta, PlayerLevelManager.getInstance(), ExperienceChangeEvent.MethodType.CHANGED));
 
 		updateExperienceBar(player);
-
-
 	}
 
 	@Override

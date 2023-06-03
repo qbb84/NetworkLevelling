@@ -24,9 +24,8 @@ public class GlobalBoosterDiscordNotifier {
 	}
 
 	public void sendGlobalDiscordMessage(Booster<?> booster) {
-		ConfigurationSection general = mainConfig.getConfigurationSection("discord");
-
-		String url = general.get("webhook_url").toString();
+		ConfigurationSection section = MainConfigDefaults.getMainSettings().getConfigurationSection("discord");
+		String url = section.getString("webhook_url");
 
 		HashMap<String, Object> stringMutation = new HashMap<>();
 		stringMutation.put("{b_name}", booster.getBoosterName());
@@ -44,18 +43,19 @@ public class GlobalBoosterDiscordNotifier {
 		boolean isBoosterActive = booster.getStatus().equals(Booster.Status.ACTIVE);
 		boolean isRandomActive = isBoosterActive ? mainConfig.getBoolean("discord.booster_activation.Random_Color") : mainConfig.getBoolean("discord.booster_deactivation.Random_Color");
 
-		String title = isBoosterActive ? mainConfig.getString("discord.booster_activation.Title") : mainConfig.getString("discord.booster_deactivation.Title");
-		String description = isBoosterActive ? mainConfig.getString("discord.booster_activation.Description") : mainConfig.getString("discord.booster_deactivation.Description");
+		String title = isBoosterActive ? "discord.booster_activation.Title" : "discord.booster_deactivation.Title";
+		String description = isBoosterActive ? "discord.booster_activation.Description" : "discord.booster_deactivation.Description";
+		String footerDescription = isBoosterActive ? "discord.booster_activation.footer.message" : "discord.booster_deactivation.footer.message";
 		String thumbnail = isBoosterActive ? mainConfig.getString("discord.booster_activation.Thumbnail") : mainConfig.getString("discord.booster_deactivation.Thumbnail");
 		String footerImage = isBoosterActive ? mainConfig.getString("discord.booster_activation.footer.image") : mainConfig.getString("discord.booster_deactivation.footer.image");
-		String footerDescription = isBoosterActive ? mainConfig.getString("discord.booster_activation.footer.message") : mainConfig.getString("discord.booster_deactivation.footer.message");
 
-		int alpha = isBoosterActive ? mainConfig.getInt("discord.booster_activation.ALPHA") : mainConfig.getInt("discord.booster_deactivation.ALPHA");
-		int red = isBoosterActive ? mainConfig.getInt("discord.booster_activation.RED") : mainConfig.getInt("discord.booster_deactivation.RED");
-		int green = isBoosterActive ? mainConfig.getInt("discord.booster_activation.GREEN") : mainConfig.getInt("discord.booster_deactivation.GREEN");
-		int blue = isBoosterActive ? mainConfig.getInt("discord.booster_activation.BLUE") : mainConfig.getInt("discord.booster_deactivation.BLUE");
+		int alpha = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.ALPHA") : mainConfig.getInt("discord.booster_deactivation.Color.ALPHA");
+		int red = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.RED") : mainConfig.getInt("discord.booster_deactivation.Color.RED");
+		int green = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.GREEN") : mainConfig.getInt("discord.booster_deactivation.Color.GREEN");
+		int blue = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.BLUE") : mainConfig.getInt("discord.booster_deactivation.Color.BLUE");
 
 		Color color = isRandomActive ? randomColor() : Color.fromARGB(alpha, red, green, blue);
+		//TODO Fix custom RGB Colors
 
 		DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
 				.setColor(color)
