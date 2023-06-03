@@ -5,42 +5,64 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import rankednetwork.NetworkLevelling.Boosters.Booster;
 import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
-import rankednetwork.NetworkLevelling.Config.DiscordConfigDefaults;
+import rankednetwork.NetworkLevelling.Boosters.BoosterType;
+import rankednetwork.NetworkLevelling.Config.MainConfigDefaults;
 import rankednetwork.NetworkLevelling.Webhooks.DiscordWebhook;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
 public class GlobalBoosterDiscordNotifier {
+
+	private final YamlConfiguration mainConfig = MainConfigDefaults.getMainSettings();
 
 	public GlobalBoosterDiscordNotifier() {
 
 	}
 
 	public void sendGlobalDiscordMessage(Booster<?> booster) {
-		YamlConfiguration discordConfigDefaults = DiscordConfigDefaults.getDiscordSettings();
+		ConfigurationSection section = MainConfigDefaults.getMainSettings().getConfigurationSection("discord");
+		String url = section.getString("webhook_url");
 
-		ConfigurationSection general = discordConfigDefaults.getConfigurationSection("general");
-
-
-		if (general == null) {
-			general = discordConfigDefaults.createSection("general");
+		HashMap<String, Object> stringMutation = new HashMap<>();
+		stringMutation.put("{b_name}", booster.getBoosterName());
+		stringMutation.put("{p}", booster.getOfflinePlayer().getName());
+		if (booster.getBoosterType().getBoosterTypeName().equalsIgnoreCase(BoosterType.CUSTOM.getBoosterTypeName())) {
+			stringMutation.put("{b_amount}", booster.getBoostAmount() + "%");
+			stringMutation.put("{b_duration}", booster.getDurationInMinutes());
+		} else {
+			stringMutation.put("{b_amount}", booster.getBoosterType().getBoostIncreasePercentage() + "%");
+			stringMutation.put("{b_duration}", booster.getDurationInMinutes());
 		}
+		stringMutation.put("{b_type}", booster.getStatistic().getType());
 
-		if (!general.isSet("webhook_url")) {
-			general.set("webhook_url", "");
-		}
+		//May need to change this section if you're thinking of sending more discord messages for different statuses. Fine for now.
+		boolean isBoosterActive = booster.getStatus().equals(Booster.Status.ACTIVE);
+		boolean isRandomActive = isBoosterActive ? mainConfig.getBoolean("discord.booster_activation.Random_Color") : mainConfig.getBoolean("discord.booster_deactivation.Random_Color");
 
-		String url = general.get("webhook_url").toString();
+		String title = isBoosterActive ? "discord.booster_activation.Title" : "discord.booster_deactivation.Title";
+		String description = isBoosterActive ? "discord.booster_activation.Description" : "discord.booster_deactivation.Description";
+		String footerDescription = isBoosterActive ? "discord.booster_activation.footer.message" : "discord.booster_deactivation.footer.message";
+		String thumbnail = isBoosterActive ? mainConfig.getString("discord.booster_activation.Thumbnail") : mainConfig.getString("discord.booster_deactivation.Thumbnail");
+		String footerImage = isBoosterActive ? mainConfig.getString("discord.booster_activation.footer.image") : mainConfig.getString("discord.booster_deactivation.footer.image");
+
+		int alpha = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.ALPHA") : mainConfig.getInt("discord.booster_deactivation.Color.ALPHA");
+		int red = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.RED") : mainConfig.getInt("discord.booster_deactivation.Color.RED");
+		int green = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.GREEN") : mainConfig.getInt("discord.booster_deactivation.Color.GREEN");
+		int blue = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.BLUE") : mainConfig.getInt("discord.booster_deactivation.Color.BLUE");
+
+		Color color = isRandomActive ? randomColor() : Color.fromARGB(alpha, red, green, blue);
+		//TODO Fix custom RGB Colors
 
 		DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
-				.setColor(randomColor())
-				.setTitle(booster.getBoosterName() + " Booster Activation!")
-				.setThumbnail("https://png.pngtree.com/png-clipart/20191120/original/pngtree-store-icon-in-line-style-png-image_5053711.jpg")
-				.setFooter("Thank you for the support!", "https://png.pngtree.com/png-clipart/20191120/original/pngtree-store-icon-in-line-style-png-image_5053711.jpg")
-				.setDescription(booster.getPlayer().getName() + " has activated a " + booster.getBoosterType().getBoostIncreasePercentage() + "% " + booster.getStatistic().getName() + " Booster!");
+				.setColor(color)
+				.setTitle(MainConfigDefaults.translateString(title, stringMutation))
+				.setThumbnail(thumbnail)
+				.setFooter(MainConfigDefaults.translateString(footerDescription, stringMutation), footerImage)
+				.setDescription(MainConfigDefaults.translateString(description, stringMutation));
 		BoosterManager.getInstance().sendDiscordMessage(url, booster, embedObject);
 	}
 
@@ -60,4 +82,5 @@ public class GlobalBoosterDiscordNotifier {
 		return colors.get(new Random().nextInt(colors.size() - 1));
 
 	}
+
 }

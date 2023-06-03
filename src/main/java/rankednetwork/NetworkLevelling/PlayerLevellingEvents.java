@@ -1,6 +1,7 @@
 package rankednetwork.NetworkLevelling;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,12 +9,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.jetbrains.annotations.NotNull;
 import rankednetwork.NetworkLevelling.Boosters.Booster;
-import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
 import rankednetwork.NetworkLevelling.Boosters.BoosterScope;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActivationEvent;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActiveEvent;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterExpirationEvent;
+import rankednetwork.NetworkLevelling.Boosters.Events.BoosterQueueEvent;
 import rankednetwork.NetworkLevelling.Config.Config;
+import rankednetwork.NetworkLevelling.Events.ExperienceChangeEvent;
+import rankednetwork.NetworkLevelling.Events.PlayerLevelUpEvent;
 import rankednetwork.NetworkLevelling.Notifiers.GameNotifier;
 import rankednetwork.NetworkLevelling.Notifiers.GlobalBoosterDiscordNotifier;
 
@@ -25,7 +28,6 @@ import java.util.UUID;
 public class PlayerLevellingEvents implements Listener {
 
 	private final HashMap<String, Object> configMap = new HashMap<>();
-
 
 	@EventHandler
 	public void onJoin(@NotNull PlayerJoinEvent event) {
@@ -65,7 +67,7 @@ public class PlayerLevellingEvents implements Listener {
 	@EventHandler
 	public void onBoosterActive(BoosterActiveEvent event) {
 
-		UUID playerUUID = event.getPlayer().getUniqueId();
+		UUID playerUUID = event.getPlayerUUID();
 
 		// Obtain the Player object from the server using the UUID
 		Player p = Bukkit.getServer().getPlayer(playerUUID);
@@ -82,8 +84,8 @@ public class PlayerLevellingEvents implements Listener {
 		experience.addExperienceChangeListener(listener);
 
 		double boostPercentage = event.getBoosterPower();
-		int playerLevel = PlayerLevelManager.getInstance().getCurrentLevel(event.getPlayer());
-		double xpPerMinute = 600.0 * playerLevel * boostPercentage;
+		int playerLevel = PlayerLevelManager.getInstance().getCurrentLevel(event.getPlayerUUID());
+		double xpPerMinute = 300.0 * playerLevel * boostPercentage;
 		int bound = Math.max(playerLevel / 5 * 10, 1);
 		int randomXP = new Random().nextInt(bound);
 		int xp = (randomXP > 0) ? (int) xpPerMinute + randomXP : (int) xpPerMinute;
@@ -97,16 +99,43 @@ public class PlayerLevellingEvents implements Listener {
 
 	@EventHandler
 	public void onBoosterExpire(BoosterExpirationEvent event) {
-		new GameNotifier().sendActivatedMessage(event.getBooster());
+		new GameNotifier().sendNotification(event.getBooster());
 	}
 
 	@EventHandler
 	public void onBoosterActivation(BoosterActivationEvent event) {
+		Booster<?> booster = event.getBooster();
 		if (event.getScope().equals(BoosterScope.GLOBAL)) {
-			Booster<?> booster = BoosterManager.getInstance().getBoosterForPlayer(event.getPlayer(), event.getBoosterName());
 			new GlobalBoosterDiscordNotifier().sendGlobalDiscordMessage(booster);
-			new GameNotifier().sendActivatedMessage(booster);
+			new GameNotifier().sendNotification(event.getBooster());
+		} else {
+			new GameNotifier().sendNotification(event.getBooster());
 		}
+	}
+
+	@EventHandler
+	public void onBoosterQueue(BoosterQueueEvent event) {
+		event.getOnlinePlayer().sendMessage(event.getStatus().toString());
+		new GameNotifier().sendNotification(event.getBooster());
+	}
+
+	@EventHandler
+	public void onLevelUp(PlayerLevelUpEvent event) {
+		OfflinePlayer player = Bukkit.getOfflinePlayer(event.getPlayerUUID());
+		if (player.isOnline()) {
+			new GameNotifier().sendNotification(((Player) player).getUniqueId());
+		}
+	}
+
+	@EventHandler
+	public void onExperienceChange(ExperienceChangeEvent event) {
+		Player p = event.getOnlinePlayer();
+		p.sendMessage("Hi");
+		p.sendMessage("New Experience " + event.getNewExperience());
+		p.sendMessage("Total Experience " + event.getPlayerExperience());
+		p.sendMessage("Level " + event.getPlayerLevel());
+		p.sendMessage("Result " + event.getResult());
+		p.sendMessage("Method Type " + event.getMethodType());
 	}
 
 

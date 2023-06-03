@@ -1,26 +1,25 @@
 package rankednetwork.NetworkLevelling.Config;
 
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+
 import java.io.File;
 import java.io.IOException;
 
 public class Config {
 
-
 	private final File file;
 	private final YamlConfiguration config;
 
-	public Config(JavaPlugin plugin, String configName){
-		this.file = new File( plugin.getDataFolder(),configName + ".yml");
+	public Config(JavaPlugin plugin, String configName) {
+		this.file = new File(plugin.getDataFolder(), configName + ".yml");
 		this.config = new YamlConfiguration();
 		createConfig();
 	}
 
-	private void createConfig(){
-		try{
-			if(!file.exists()){
+	private void createConfig() {
+		try {
+			if (!file.exists()) {
 				file.getParentFile().mkdirs();
 				file.createNewFile();
 			}
@@ -29,7 +28,7 @@ public class Config {
 			config.save(file);
 
 
-		}catch(Exception ex){
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 	}
@@ -43,8 +42,8 @@ public class Config {
 	}
 
 
-	public void save(){
-		try{
+	public void save() {
+		try {
 			getConfig().save(file.getPath());
 		} catch (IOException ex) {
 			throw new RuntimeException(ex);

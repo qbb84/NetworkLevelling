@@ -6,17 +6,32 @@ import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActivationEvent;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActiveEvent;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterExpirationEvent;
 
-import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static rankednetwork.NetworkLevelling.EventManager.registerEvents;
 
+/**
+ * Manages the queues for both personal and global boosters.
+ *
+ * <p>This class provides methods for adding a booster to the queue, getting the time
+ * until a booster becomes active, displaying the booster queue to a player, and checking
+ * and activating the next booster in the queue.
+ *
+ * <p>A booster queue contains a series of boosters that are activated in sequence.
+ * Once a booster is activated, it remains active for a certain duration, after which
+ * the next booster in the queue (if any) is activated.
+ */
 public class BoosterQueue {
 
-	private final Queue<Booster<?>> personalBoosterQueue = new LinkedList<>();
-	private final Queue<Booster<?>> globalBoosterQueue = new LinkedList<>();
+	private final Queue<Booster<?>> personalBoosterQueue = new ConcurrentLinkedQueue<>();
+	private final Queue<Booster<?>> globalBoosterQueue = new ConcurrentLinkedQueue<>();
 
-
+	/**
+	 * Adds a booster to the relevant queue (personal or global) and sets its activation time.
+	 *
+	 * @param booster the booster to add
+	 */
 	public void addBooster(Booster<?> booster) {
 		BoosterManager.getInstance().getBoosterActivationTimes().put(booster, System.currentTimeMillis());
 		if (booster.getScope() == BoosterScope.PERSONAL) {
@@ -26,12 +41,17 @@ public class BoosterQueue {
 			personalBoosterQueue.add(booster);
 
 		} else if (booster.getScope() == BoosterScope.GLOBAL) {
-
-
+			
 			globalBoosterQueue.add(booster);
 		}
 	}
 
+	/**
+	 * Returns the time until the given booster becomes active.
+	 *
+	 * @param booster the booster to check
+	 * @return the time until the booster becomes active
+	 */
 	public long getTimeUntilActive(Booster<?> booster) {
 		Queue<Booster<?>> relevantQueue;
 		if (booster.getScope() == BoosterScope.PERSONAL) {
@@ -62,7 +82,11 @@ public class BoosterQueue {
 		return totalTime + 1;
 	}
 
-
+	/**
+	 * Displays the booster queue to a player in chat.
+	 *
+	 * @param player the player to display the queue to
+	 */
 	public void displayBoosterQueue(Player player) {
 		player.sendMessage(ChatColor.GOLD + "----- Booster Queue -----");
 		if (getGlobalBoosterQueue().isEmpty()) {
@@ -96,6 +120,12 @@ public class BoosterQueue {
 		return globalBoosterQueue;
 	}
 
+	/**
+	 * Returns a Runnable that, when executed, will check and activate the next booster
+	 * in the global and personal booster queues.
+	 *
+	 * @return a Runnable that checks and activates the next booster
+	 */
 	public Runnable checkAndActivateNextBooster() {
 		return new Runnable() {
 			@Override
@@ -109,13 +139,9 @@ public class BoosterQueue {
 					Booster<?> activeBooster = boosterQueue.peek();
 
 					registerEvents(new BoosterActiveEvent(
-							activeBooster.getPlayer(),
+							activeBooster.getPlayerUUID(),
 							activeBooster.getBoosterName(),
-							activeBooster.getBoostAmount(),
-							activeBooster.getScope(),
-							activeBooster.getBoosterType(),
-							activeBooster.getStatistic(),
-							activeBooster.getStatus()
+							activeBooster
 					));
 				}
 
@@ -124,7 +150,7 @@ public class BoosterQueue {
 					expiredBooster.setStatus(Booster.Status.EXPIRED);
 					//Listener for expiration event
 					registerEvents(new BoosterExpirationEvent(
-							expiredBooster.getPlayer(),
+							expiredBooster.getPlayerUUID(),
 							expiredBooster.getBoosterName(),
 							expiredBooster
 					));
@@ -142,13 +168,9 @@ public class BoosterQueue {
 
 						//Call custom event
 						registerEvents(new BoosterActivationEvent(
-								nextBooster.getPlayer(),
+								nextBooster.getPlayerUUID(),
 								nextBooster.getBoosterName(),
-								nextBooster.getBoostAmount(),
-								nextBooster.getScope(),
-								nextBooster.getBoosterType(),
-								nextBooster.getStatistic(),
-								nextBooster.getStatus()
+								nextBooster
 						));
 
 					}
