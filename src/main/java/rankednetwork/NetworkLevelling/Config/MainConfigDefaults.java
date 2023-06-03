@@ -82,11 +82,18 @@ public class MainConfigDefaults {
 				mainConfigSettings.save();
 			}
 		}
+		Map<String, Integer> colorSection = new LinkedHashMap<>();
+		colorSection.put("Color.ALPHA", 250);
+		colorSection.put("Color.RED", 150);
+		colorSection.put("Color.GREEN", 200);
+		colorSection.put("Color.BLUE", 250);
 
-		activationSection.set("Color.ALPHA", 250);
-		activationSection.set("Color.RED", 55);
-		activationSection.set("Color.GREEN", 55);
-		activationSection.set("Color.BLUE", 55);
+		for (Map.Entry<String, Integer> activations : colorSection.entrySet()) {
+			if (!activationSection.isSet(activations.getKey())) {
+				activationSection.set(activations.getKey(), activations.getValue());
+				mainConfigSettings.save();
+			}
+		}
 
 		ConfigurationSection footer = activationSection.getConfigurationSection("footer");
 		if (footer == null) {
@@ -119,10 +126,12 @@ public class MainConfigDefaults {
 			}
 		}
 
-		deactivationSection.set("Color.ALPHA", 250);
-		deactivationSection.set("Color.RED", 55);
-		deactivationSection.set("Color.GREEN", 55);
-		deactivationSection.set("Color.BLUE", 55);
+		for (Map.Entry<String, Integer> activations : colorSection.entrySet()) {
+			if (!deactivationSection.isSet(activations.getKey())) {
+				deactivationSection.set(activations.getKey(), activations.getValue());
+				mainConfigSettings.save();
+			}
+		}
 
 
 		ConfigurationSection expiry_footer = deactivationSection.getConfigurationSection("footer");
