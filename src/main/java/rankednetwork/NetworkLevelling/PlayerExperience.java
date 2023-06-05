@@ -13,8 +13,7 @@ import java.util.UUID;
 
 @BoosterMetadata(name = "XP")
 public class PlayerExperience extends NetworkStatistic {
-
-
+	
 	private final UUID player;
 	private final List<ExperienceChangeListener> listeners = new ArrayList<>();
 	PlayerLevelManager levelManager;

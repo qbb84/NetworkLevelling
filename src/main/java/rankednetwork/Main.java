@@ -16,11 +16,12 @@ public final class Main extends JavaPlugin {
 		return main;
 	}
 
+	//TODO Full project Javadocs
 	@Override
 	public void onEnable() {
 		main = this;
 		new MainConfigDefaults();
-		getCommand("booster").setExecutor(new BoosterCommand());
+		getCommand("bos").setExecutor(new BoosterCommand());
 		BoosterManager.getInstance().initliazeStatisticsAvailableForBoosting();
 		BoosterManager.getInstance().checkBoostersRunnable();
 		getServer().getPluginManager().registerEvents(new PlayerLevellingEvents(), this);
@@ -31,7 +32,6 @@ public final class Main extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		BoosterManager.getInstance().saveBoosterQueues();
-
 	}
 
 	public void defaultPlayerLevelConfig() {

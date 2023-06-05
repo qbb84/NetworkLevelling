@@ -67,6 +67,7 @@ public class PlayerLevellingEvents implements Listener {
 	@EventHandler
 	public void onBoosterActive(BoosterActiveEvent event) {
 
+
 		UUID playerUUID = event.getPlayerUUID();
 
 		// Obtain the Player object from the server using the UUID
@@ -86,7 +87,7 @@ public class PlayerLevellingEvents implements Listener {
 		double boostPercentage = event.getBoosterPower();
 		int playerLevel = PlayerLevelManager.getInstance().getCurrentLevel(event.getPlayerUUID());
 		double xpPerMinute = 300.0 * playerLevel * boostPercentage;
-		int bound = Math.max(playerLevel / 5 * 10, 1);
+		int bound = Math.max(playerLevel / 5 * 10 << 1, 1);
 		int randomXP = new Random().nextInt(bound);
 		int xp = (randomXP > 0) ? (int) xpPerMinute + randomXP : (int) xpPerMinute;
 

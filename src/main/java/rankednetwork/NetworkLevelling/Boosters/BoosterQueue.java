@@ -1,7 +1,9 @@
 package rankednetwork.NetworkLevelling.Boosters;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import rankednetwork.Main;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActivationEvent;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterActiveEvent;
 import rankednetwork.NetworkLevelling.Boosters.Events.BoosterExpirationEvent;
@@ -41,7 +43,7 @@ public class BoosterQueue {
 			personalBoosterQueue.add(booster);
 
 		} else if (booster.getScope() == BoosterScope.GLOBAL) {
-			
+
 			globalBoosterQueue.add(booster);
 		}
 	}
@@ -94,6 +96,7 @@ public class BoosterQueue {
 			player.sendMessage(BoosterManager.getInstance().getBoosterActivationTimes().toString());
 			player.sendMessage(getGlobalBoosterQueue().toString());
 		} else {
+
 			int position = 1;
 			for (Booster<?> booster : getGlobalBoosterQueue()) {
 				String boosterName = booster.getBoosterName();
@@ -108,6 +111,7 @@ public class BoosterQueue {
 				player.sendMessage(ChatColor.YELLOW + "Position " + position + ": " + boosterName + " (" + timeStatus + ") " + booster.getStatus());
 				position++;
 			}
+			player.sendMessage("size:" + BoosterManager.getInstance().boosterCount());
 		}
 		player.sendMessage(ChatColor.GOLD + "-------------------------");
 	}
@@ -123,8 +127,6 @@ public class BoosterQueue {
 	/**
 	 * Returns a Runnable that, when executed, will check and activate the next booster
 	 * in the global and personal booster queues.
-	 *
-	 * @return a Runnable that checks and activates the next booster
 	 */
 	public Runnable checkAndActivateNextBooster() {
 		return new Runnable() {
@@ -135,28 +137,34 @@ public class BoosterQueue {
 			}
 
 			private void checkAndActivateBoosterInQueue(Queue<Booster<?>> boosterQueue) {
+
 				if (!boosterQueue.isEmpty()) {
 					Booster<?> activeBooster = boosterQueue.peek();
 
-					registerEvents(new BoosterActiveEvent(
+					Bukkit.getScheduler().runTask(Main.getMain(), () -> registerEvents(new BoosterActiveEvent(
 							activeBooster.getPlayerUUID(),
 							activeBooster.getBoosterName(),
 							activeBooster
-					));
+					)));
 				}
 
 				if (!boosterQueue.isEmpty() && boosterQueue.peek().getRemainingTime() <= 0) {
 					Booster<?> expiredBooster = boosterQueue.peek();
 					expiredBooster.setStatus(Booster.Status.EXPIRED);
-					//Listener for expiration event
-					registerEvents(new BoosterExpirationEvent(
-							expiredBooster.getPlayerUUID(),
-							expiredBooster.getBoosterName(),
-							expiredBooster
-					));
+
+					Booster<?> finalExpiredBooster = expiredBooster;
+					Bukkit.getScheduler().runTask(Main.getMain(), () -> registerEvents(new BoosterExpirationEvent(
+							finalExpiredBooster.getPlayerUUID(),
+							finalExpiredBooster.getBoosterName(),
+							finalExpiredBooster
+					)));
+
 
 					expiredBooster = boosterQueue.poll();
+					Bukkit.broadcastMessage("Booster removed from queue: " + (expiredBooster == null ? "null" : expiredBooster.getBoosterName()));
 					BoosterManager.getInstance().getBoosterActivationTimes().remove(expiredBooster);
+					BoosterManager.getInstance().getTotalBoosters().remove(expiredBooster);
+					BoosterManager.getInstance().getActiveBoosters().remove(expiredBooster);
 
 					if (!boosterQueue.isEmpty()) {
 						// If there's another booster in the queue, activate it
@@ -166,12 +174,12 @@ public class BoosterQueue {
 						long activationTime = System.currentTimeMillis();
 						BoosterManager.getInstance().getBoosterActivationTimes().put(nextBooster, activationTime);
 
-						//Call custom event
-						registerEvents(new BoosterActivationEvent(
+						Bukkit.getScheduler().runTask(Main.getMain(), () -> registerEvents(new BoosterActivationEvent(
 								nextBooster.getPlayerUUID(),
 								nextBooster.getBoosterName(),
 								nextBooster
-						));
+						)));
+
 
 					}
 				}

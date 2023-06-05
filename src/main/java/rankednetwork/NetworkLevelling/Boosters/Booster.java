@@ -124,6 +124,8 @@ public class Booster<T extends NetworkStatistic> {
 	public void activate() {
 		this.isActive = true;
 		this.activationTime = System.currentTimeMillis();
+		BoosterManager.getInstance().getTotalBoosters().add(this);
+		BoosterManager.getInstance().getActiveBoosters().add(this);
 		setStatus(Status.ACTIVE);
 	}
 

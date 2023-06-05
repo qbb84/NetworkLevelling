@@ -15,8 +15,7 @@ public class PlayerLevelManager implements ExperienceChangeListener {
 	private static PlayerLevelManager instance = null;
 
 	private final Config playerLevels = new Config(Main.getMain(), "player_levels");
-
-
+	
 	private PlayerLevelManager() {
 	}
 

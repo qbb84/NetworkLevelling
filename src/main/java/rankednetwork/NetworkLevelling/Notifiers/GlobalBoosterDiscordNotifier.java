@@ -39,7 +39,7 @@ public class GlobalBoosterDiscordNotifier {
 		}
 		stringMutation.put("{b_type}", booster.getStatistic().getType());
 
-		//May need to change this section if you're thinking of sending more discord messages for different statuses. Fine for now.
+		//May need to change this section if you're thinking of sending more discord messages for different statuses.
 		boolean isBoosterActive = booster.getStatus().equals(Booster.Status.ACTIVE);
 		boolean isRandomActive = isBoosterActive ? mainConfig.getBoolean("discord.booster_activation.Random_Color") : mainConfig.getBoolean("discord.booster_deactivation.Random_Color");
 
@@ -55,7 +55,6 @@ public class GlobalBoosterDiscordNotifier {
 		int blue = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.BLUE") : mainConfig.getInt("discord.booster_deactivation.Color.BLUE");
 
 		Color color = isRandomActive ? randomColor() : Color.fromARGB(alpha, red, green, blue);
-		//TODO Fix custom RGB Colors
 
 		DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
 				.setColor(color)
