@@ -11,7 +11,7 @@ import rankednetwork.NetworkLevelling.Events.PlayerLevelUpEvent;
 import java.util.UUID;
 
 /**
- * The PlayerLevelManager class implements ExperienceChangeListener and defines the player level manager which handles
+ * The PlayerLevelManager is a singleton class implements ExperienceChangeListener and defines the player level manager which handles
  * the changes in the player's experience and their levels.
  *
  * @author Rewind

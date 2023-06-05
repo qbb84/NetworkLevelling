@@ -43,7 +43,7 @@ public class GlobalBoosterDiscordNotifier {
 		if (booster.getBoosterType().getBoosterTypeName().equalsIgnoreCase(BoosterType.CUSTOM.getBoosterTypeName())) {
 			stringMutation.put("{b_amount}", booster.getBoostAmount() + "%");
 			stringMutation.put("{b_duration}", booster.getDurationInMinutes());
-			
+
 		} else {
 			stringMutation.put("{b_amount}", booster.getBoosterType().getBoostIncreasePercentage() + "%");
 			stringMutation.put("{b_duration}", booster.getDurationInMinutes());
@@ -77,7 +77,7 @@ public class GlobalBoosterDiscordNotifier {
 	}
 
 	/**
-	 * Generates a random color.
+	 * Generates a random color using Reflection from Bukkit's {@link Color} class.
 	 *
 	 * @return a random color
 	 */
