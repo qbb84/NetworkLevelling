@@ -15,14 +15,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Notifier that sends global booster notifications via Discord.
+ */
 public class GlobalBoosterDiscordNotifier {
 
 	private final YamlConfiguration mainConfig = MainConfigDefaults.getMainSettings();
+	private final Random random = new Random();
 
 	public GlobalBoosterDiscordNotifier() {
 
 	}
 
+	/**
+	 * Sends a global discord message about a booster.
+	 *
+	 * @param booster the booster to notify about
+	 */
 	public void sendGlobalDiscordMessage(Booster<?> booster) {
 		ConfigurationSection section = MainConfigDefaults.getMainSettings().getConfigurationSection("discord");
 		String url = section.getString("webhook_url");
@@ -65,6 +74,11 @@ public class GlobalBoosterDiscordNotifier {
 		BoosterManager.getInstance().sendDiscordMessage(url, booster, embedObject);
 	}
 
+	/**
+	 * Generates a random color.
+	 *
+	 * @return a random color
+	 */
 	public Color randomColor() {
 		Field[] declaredFields = Color.class.getDeclaredFields();
 		List<Color> colors = new ArrayList<>();
@@ -78,7 +92,7 @@ public class GlobalBoosterDiscordNotifier {
 			}
 		}
 
-		return colors.get(new Random().nextInt(colors.size() - 1));
+		return colors.get(random.nextInt(colors.size() - 1));
 
 	}
 

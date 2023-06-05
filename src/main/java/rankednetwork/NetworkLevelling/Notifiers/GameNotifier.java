@@ -12,8 +12,16 @@ import rankednetwork.NetworkLevelling.PlayerLevelManager;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * A notifier that sends in-game notifications.
+ */
 public class GameNotifier implements Notifier {
 
+	/**
+	 * Sends a notification about a booster.
+	 *
+	 * @param booster the booster to notify about
+	 */
 	@Override
 	public void sendNotification(Booster<? extends NetworkStatistic> booster) {
 		UUID playerUUID = booster.getPlayerUUID();
@@ -56,6 +64,11 @@ public class GameNotifier implements Notifier {
 		}
 	}
 
+	/**
+	 * Sends a level up notification for a player.
+	 *
+	 * @param uuid the UUID of the player to notify
+	 */
 	@Override
 	public void sendNotification(UUID uuid) {
 		OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);

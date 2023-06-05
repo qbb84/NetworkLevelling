@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * This class represents a network statistic.
+ */
 public abstract class NetworkStatistic {
 
 	protected static final List<String> availableStats = new ArrayList<>();
@@ -55,6 +58,7 @@ public abstract class NetworkStatistic {
 		}
 		return builder.toString();
 	}
+
 
 	public abstract int getValue(Player player);
 
