@@ -69,7 +69,7 @@ public class BoosterManager {
 	/**
 	 * Object to access functionality of the boosterQueue class.
 	 */
-	public BoosterQueue boosterQueue = new BoosterQueue();
+	private final BoosterQueue boosterQueue = new BoosterQueue();
 
 
 	/**
@@ -119,7 +119,7 @@ public class BoosterManager {
 			for (Booster<?> boosters : boosterQueue.getGlobalBoosterQueue()) {
 				if (boosters.getBoosterName().equalsIgnoreCase(booster.getBoosterName()) &&
 						boosters.getOnlinePlayer() == player) {
-					player.sendMessage("You can only queue one" + booster.getBoosterName() + " booster at a time!");
+					player.sendMessage("You can only queue one " + booster.getBoosterName() + " booster at a time!");
 					return;
 				}
 			}
@@ -137,8 +137,8 @@ public class BoosterManager {
 			booster.setDuration(customValues.second);
 		} else {
 			booster.setDuration(booster.getDuration());
+			//Set multiplier
 		}
-		player.sendMessage(String.valueOf(booster.getDuration()));
 
 		UUID playerUUID = player.getUniqueId();
 
@@ -442,7 +442,7 @@ public class BoosterManager {
 		String playerUniqueId = String.valueOf(uuid);
 		ConfigurationSection playerSection = playerBoostersList.getConfig().getConfigurationSection(playerUniqueId);
 		if (playerSection == null) {
-			// The player doesn't have any boosters
+			// The player doesn't have any boosters todo
 			return null;
 		}
 
