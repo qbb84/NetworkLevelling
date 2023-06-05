@@ -15,6 +15,11 @@ import rankednetwork.NetworkLevelling.NetworkStatistic;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * This abstract class represents the structure of a booster event in the Network Levelling system.
+ * It contains information about the event such as the associated player (identified by their UUID),
+ * booster name, power, type, and scope.
+ */
 public abstract class BoosterEvent extends Event implements EventBase {
 
 	protected final LocalDateTime creationTime;
@@ -77,6 +82,11 @@ public abstract class BoosterEvent extends Event implements EventBase {
 		return Bukkit.getOfflinePlayer(playerUUID);
 	}
 
+	/**
+	 * Retrieves the name of the booster associated with this event.
+	 *
+	 * @return The name of the booster associated with this event.
+	 */
 	public final @NotNull String getBoosterName() {
 		return boosterName;
 	}
@@ -113,6 +123,11 @@ public abstract class BoosterEvent extends Event implements EventBase {
 	}
 
 
+	/**
+	 * Retrieves the creation time of this event.
+	 *
+	 * @return A LocalDateTime object representing the creation time of the event.
+	 */
 	@Override
 	public LocalDateTime getCreationTime() {
 		return this.creationTime;

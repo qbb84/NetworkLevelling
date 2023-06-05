@@ -69,7 +69,8 @@ public class BoosterManager {
 	/**
 	 * Object to access functionality of the boosterQueue class.
 	 */
-	BoosterQueue boosterQueue = new BoosterQueue();
+	private final BoosterQueue boosterQueue = new BoosterQueue();
+
 
 	/**
 	 * Private constructor for singleton pattern.
@@ -118,7 +119,7 @@ public class BoosterManager {
 			for (Booster<?> boosters : boosterQueue.getGlobalBoosterQueue()) {
 				if (boosters.getBoosterName().equalsIgnoreCase(booster.getBoosterName()) &&
 						boosters.getOnlinePlayer() == player) {
-					player.sendMessage("You can only queue one" + booster.getBoosterName() + " booster at a time!");
+					player.sendMessage("You can only queue one " + booster.getBoosterName() + " booster at a time!");
 					return;
 				}
 			}
@@ -136,8 +137,8 @@ public class BoosterManager {
 			booster.setDuration(customValues.second);
 		} else {
 			booster.setDuration(booster.getDuration());
+			//Set multiplier
 		}
-		player.sendMessage(String.valueOf(booster.getDuration()));
 
 		UUID playerUUID = player.getUniqueId();
 
@@ -149,7 +150,7 @@ public class BoosterManager {
 				boosterQueue.addBooster(booster);
 				if (wasPersonalQueueEmpty) {
 					booster.activate();
-					registerEvents(new BoosterActivationEvent(player.getUniqueId(), boosterName, booster)); // Important to call after you active it.
+					registerEvents(new BoosterActivationEvent(player.getUniqueId(), boosterName, booster));
 				} else {
 					booster.setStatus(Booster.Status.INQUEUE);
 					registerEvents(new BoosterQueueEvent(playerUUID, boosterName, booster));
@@ -161,7 +162,7 @@ public class BoosterManager {
 				boosterQueue.addBooster(booster);
 				if (wasGlobalQueueEmpty) {
 					booster.activate();
-					registerEvents(new BoosterActivationEvent(playerUUID, boosterName, booster)); // Important to call after you active it.
+					registerEvents(new BoosterActivationEvent(playerUUID, boosterName, booster));
 				} else {
 					booster.setStatus(Booster.Status.INQUEUE);
 					registerEvents(new BoosterQueueEvent(playerUUID, boosterName, booster));
@@ -178,14 +179,9 @@ public class BoosterManager {
 	 * This method periodically checks if there's a new booster that should be activated.
 	 */
 	public void checkBoostersRunnable() {
-		int delay = 1200;
-		int period = 1200;
-		Bukkit.getScheduler().runTaskTimer(Main.getMain(), boosterQueue.checkAndActivateNextBooster(), delay, period);
-	}
-
-
-	public void setDiscordSettingDefaults() {
-
+		int delay = 1500;
+		int period = 1500;
+		Bukkit.getScheduler().runTaskTimerAsynchronously(Main.getMain(), boosterQueue.checkAndActivateNextBooster(), delay, period);
 	}
 
 	/**
@@ -271,7 +267,6 @@ public class BoosterManager {
 	}
 
 	/**
-	 * TODO
 	 * This method removes a booster from a player.
 	 *
 	 * @param player      The player to remove the booster from.
@@ -447,7 +442,7 @@ public class BoosterManager {
 		String playerUniqueId = String.valueOf(uuid);
 		ConfigurationSection playerSection = playerBoostersList.getConfig().getConfigurationSection(playerUniqueId);
 		if (playerSection == null) {
-			// The player doesn't have any boosters
+			// The player doesn't have any boosters todo
 			return null;
 		}
 
@@ -565,6 +560,24 @@ public class BoosterManager {
 	}
 
 	/**
+	 * This method gets the total boosters.
+	 *
+	 * @return the set containing a copy of the total boosters
+	 */
+	public SortedSet<Booster<? extends NetworkStatistic>> getTotalBoosters() {
+		return totalBoosters;
+	}
+
+	/**
+	 * This method get the total active boosters
+	 *
+	 * @return the set containing a copy of the active boosters
+	 */
+	public SortedSet<Booster<? extends NetworkStatistic>> getActiveBoosters() {
+		return activeBoosters;
+	}
+
+	/**
 	 * This method loads the booster queues from the booster cache.
 	 *
 	 * @see Booster#fromString(String)
@@ -576,9 +589,19 @@ public class BoosterManager {
 
 		for (String boosterAsString : globalBoosterQueueAsString) {
 			boosterQueue.getGlobalBoosterQueue().add(Booster.fromString(boosterAsString));
+			totalBoosters.add(Booster.fromString(boosterAsString));
+			if (Booster.fromString(boosterAsString).isActive()) {
+				activeBoosters.add(Booster.fromString(boosterAsString));
+			}
+
 		}
 		for (String boosterAsString : personalBoosterQueueAsString) {
 			boosterQueue.getPersonalBoosterQueue().add(Booster.fromString(boosterAsString));
+			totalBoosters.add(Booster.fromString(boosterAsString));
+			if (Booster.fromString(boosterAsString).isActive()) {
+				activeBoosters.add(Booster.fromString(boosterAsString));
+			}
 		}
+
 	}
 }

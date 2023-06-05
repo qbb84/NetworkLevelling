@@ -25,7 +25,15 @@ import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
-public class PlayerLevellingEvents implements Listener {
+/**
+ * The CustomerBoosterEventsTest class implements Listener and defines all the events associated with the player levelling.
+ * This includes player joining, and custom events: booster activation, expiration, queuing, player level up and experience change events.
+ *
+ * @author Rewind
+ * @version 0.5
+ * @since 2023-06-01
+ */
+public class CustomerBoosterEventsTest implements Listener {
 
 	private final HashMap<String, Object> configMap = new HashMap<>();
 
@@ -67,6 +75,7 @@ public class PlayerLevellingEvents implements Listener {
 	@EventHandler
 	public void onBoosterActive(BoosterActiveEvent event) {
 
+
 		UUID playerUUID = event.getPlayerUUID();
 
 		// Obtain the Player object from the server using the UUID
@@ -86,7 +95,7 @@ public class PlayerLevellingEvents implements Listener {
 		double boostPercentage = event.getBoosterPower();
 		int playerLevel = PlayerLevelManager.getInstance().getCurrentLevel(event.getPlayerUUID());
 		double xpPerMinute = 300.0 * playerLevel * boostPercentage;
-		int bound = Math.max(playerLevel / 5 * 10, 1);
+		int bound = Math.max(playerLevel / 5 * 10 << 1, 1);
 		int randomXP = new Random().nextInt(bound);
 		int xp = (randomXP > 0) ? (int) xpPerMinute + randomXP : (int) xpPerMinute;
 

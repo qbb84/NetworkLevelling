@@ -157,9 +157,6 @@ public class MainConfigDefaults {
 
 		List<String> boostersComments = new ArrayList<>();
 		boostersComments.add("The boosters section contains settings for boosters.");
-		boostersComments.add("{queue_prompt} will be replaced with the queue prompt message.");
-		boostersComments.add("{active_prompt} will be replaced with the active prompt message.");
-		boostersComments.add("{expired_prompt} will be replaced with the expired prompt message.");
 		settings.setComments("boosters", boostersComments);
 
 		final Map<String, Object> boosterDefaults = new HashMap<>();
@@ -185,7 +182,8 @@ public class MainConfigDefaults {
 
 		List<String> levellingComments = new ArrayList<>();
 		levellingComments.add("The levelling section contains settings for levelling.");
-		levellingComments.add("{level_up_prompt} will be replaced with the level up prompt message.");
+		levellingComments.add("level_up_prompt will be replaced with the level up prompt message.");
+		levellingComments.add("In this section you have access to {p} and {level}");
 		settings.setComments("levelling", levellingComments);
 
 		final Map<String, Object> levellingefaults = new HashMap<>();
@@ -229,11 +227,10 @@ public class MainConfigDefaults {
 
 	}
 
-
 	public static String translateString(String absoluteConfigStringLocation, HashMap<String, Object> replacement) {
 		String result = getMainSettings().getString(absoluteConfigStringLocation);
 
-		if (absoluteConfigStringLocation == null) {
+		if (result == null) {
 			throw new NullPointerException(absoluteConfigStringLocation + " can't be found!");
 		}
 

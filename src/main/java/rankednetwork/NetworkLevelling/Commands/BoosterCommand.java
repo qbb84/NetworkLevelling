@@ -12,16 +12,19 @@ import rankednetwork.NetworkLevelling.Boosters.BoosterScope;
 import rankednetwork.NetworkLevelling.Boosters.BoosterType;
 import rankednetwork.NetworkLevelling.NetworkStatistic;
 
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 public class BoosterCommand implements CommandExecutor {
 
 
 	BoosterManager manager = BoosterManager.getInstance();
 
-
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
-		if (!s.equals("booster")) {
+		if (!s.equals("bos")) {
 			return false;
 		}
 		if (!(args.length > 0)) {
@@ -41,20 +44,20 @@ public class BoosterCommand implements CommandExecutor {
 					BoosterType type = null;
 
 					if (statistic == null) {
-						p.sendMessage(ChatColor.RED + " Usage: /booster create <name> " + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <statistic> " + ChatColor.RED + " <scope> <type>");
-						return false;
+						p.sendMessage(ChatColor.RED + " Usage: /booster create [name] " + ChatColor.DARK_RED + " [statistic] " + ChatColor.RED + " [scope] [type]");
+						break;
 					}
 					try {
 						scope = BoosterScope.valueOf(args[3].toUpperCase());
 					} catch (IllegalArgumentException ex) {
-						p.sendMessage(ChatColor.RED + " Usage: /booster create <name> <statistic> " + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <scope> " + ChatColor.RED + "<type>");
-						return false;
+						p.sendMessage(ChatColor.RED + " Usage: /booster create [name] [statistic] " + ChatColor.DARK_RED + " [scope] " + ChatColor.RED + "[type]");
+						break;
 					}
 					try {
 						type = BoosterType.valueOf(args[4].toUpperCase());
 					} catch (IllegalArgumentException ex) {
-						p.sendMessage(ChatColor.RED + " Usage: /booster create <name> <statistic> <scope> " + ChatColor.DARK_RED + ChatColor.UNDERLINE + "<type>");
-						return false;
+						p.sendMessage(ChatColor.RED + " Usage: /booster create [name] [statistic] [scope] " + ChatColor.DARK_RED + "[type]");
+						break;
 					}
 
 					manager.create(boosterName, statistic, scope, type, p);
@@ -67,27 +70,27 @@ public class BoosterCommand implements CommandExecutor {
 					String statistic = (NetworkStatistic.getAvailableStats().toString().toLowerCase().contains(args[2].toLowerCase())) ? args[2] : null;
 					BoosterScope scope = null;
 					if (statistic == null) {
-						p.sendMessage(ChatColor.RED + " Usage: /booster create <name> " + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <statistic> " + ChatColor.RED + " <scope> <multiplier> <duration>");
+						p.sendMessage(ChatColor.RED + " Usage: /booster create [name] " + ChatColor.DARK_RED + " [statistic] " + ChatColor.RED + " [scope] [multiplier] [duration]");
 					}
 					try {
 						scope = BoosterScope.valueOf(args[3].toUpperCase());
 					} catch (IllegalArgumentException ex) {
-						p.sendMessage(ChatColor.RED + " Usage: /booster create <name> <statistic> " + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <scope> " + ChatColor.RED + "<multiplier> <duration>");
-						return false;
+						p.sendMessage(ChatColor.RED + " Usage: /booster create [name] [statistic] " + ChatColor.DARK_RED + " [scope] " + ChatColor.RED + "[multiplier] [duration]");
+						break;
 					}
 					double multiplier;
 					long duration;
 					try {
 						multiplier = Double.parseDouble(args[4]);
 					} catch (NumberFormatException exception) {
-						p.sendMessage(ChatColor.RED + " Usage: /booster create <name> <statistic> <scope> " + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <multiplier>" + ChatColor.RED + " <duration>");
-						return false;
+						p.sendMessage(ChatColor.RED + " Usage: /booster create [name] [statistic] [scope] " + ChatColor.DARK_RED + " [multiplier]" + ChatColor.RED + " [duration]");
+						break;
 					}
 					try {
 						duration = Long.parseLong(args[5]);
 					} catch (NumberFormatException exception) {
-						p.sendMessage(ChatColor.RED + " Usage: /booster create <name> <statistic> <scope> <multiplier>" + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <duration>");
-						return false;
+						p.sendMessage(ChatColor.RED + " Usage: /booster create [name] [statistic] [scope] [multiplier]" + ChatColor.DARK_RED + " [duration]");
+						break;
 					}
 
 					manager.create(boosterName, statistic, scope, BoosterType.CUSTOM, multiplier, duration, p);
@@ -99,82 +102,124 @@ public class BoosterCommand implements CommandExecutor {
 				}
 				Player pl = Bukkit.getPlayer(args[1]);
 				if (pl == null) {
-					p.sendMessage(ChatColor.RED + " Usage: /booster remove " + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <player>" + "<boostername> <count>");
-					return false;
+					p.sendMessage(ChatColor.RED + " Usage: /booster remove " + ChatColor.DARK_RED + " [player]" + " [name] [count]");
+					break;
 				}
 				String boosterName = args[2];
 				int count;
 				try {
 					count = Integer.parseInt(args[3]);
 				} catch (NumberFormatException ex) {
-					p.sendMessage(ChatColor.RED + " Usage: /booster remove <player> <boostername>" + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <count>");
-					return false;
+					p.sendMessage(ChatColor.RED + " Usage: /booster remove [player] [name]" + ChatColor.DARK_RED + " [count]");
+					break;
 				}
 				manager.removeBooster(pl, boosterName, count);
 				break;
 			case "queue":
-				if (args[1].equalsIgnoreCase("list")) {
-					manager.displayBoosterQueue(p);
-					break;
-				} else {
-					p.sendMessage(ChatColor.RED + " Usage: /booster queue" + ChatColor.DARK_RED + ChatColor.UNDERLINE + " <list...>");
-				}
 				Player activationPlayer = Bukkit.getPlayer(args[1]);
 				if (activationPlayer == null) {
-					p.sendMessage(ChatColor.RED + " Usage: /booster queue" + ChatColor.RED + ChatColor.UNDERLINE + " <player>" + ChatColor.RED + "<booster_name>");
-					return false;
+					p.sendMessage(ChatColor.RED + " Usage: /booster queue" + ChatColor.RED + " [player]" + ChatColor.RED + " [name]");
+					break;
 				}
 				if (args.length != 3) {
-					p.sendMessage(ChatColor.RED + " Usage: /booster queue <player> " + ChatColor.RED + ChatColor.UNDERLINE + "<booster_name>");
-					return false;
+					p.sendMessage(ChatColor.RED + " Usage: /booster queue [player] " + ChatColor.RED + "[name]");
+					break;
 				}
 				String bName = args[2];
 				manager.queueBooster(manager.getBoosterForPlayer(activationPlayer, bName), activationPlayer, bName);
 				break;
 			case "give":
 				if (args.length != 4) {
-					return false;
+					break;
 				}
 				Player player = Bukkit.getPlayer(args[1]);
 				if (player == null) {
-					p.sendMessage(ChatColor.RED + " Usage: /booster give" + ChatColor.RED + ChatColor.UNDERLINE + " <player> " + ChatColor.RED + "<booster_name> <amount>");
-					return false;
+					p.sendMessage(ChatColor.RED + " Usage: /booster give" + ChatColor.RED + " [player] " + ChatColor.RED + "[name] [amount]");
+					break;
 				}
 				String boosterAlias = args[2];
 				int amount = 0;
 				try {
 					amount = Integer.parseInt(args[3]);
 				} catch (NumberFormatException exception) {
-					p.sendMessage(ChatColor.RED + " Usage: /booster give <player> <booster_name>" + ChatColor.RED + ChatColor.UNDERLINE + " <amount>");
-					return false;
+					p.sendMessage(ChatColor.RED + " Usage: /booster give [player] [name]" + ChatColor.RED + " [amount]");
+					break;
 				}
 				manager.giveBooster(player, boosterAlias, amount).getDurationInMinutes();
 				break;
 			case "stats":
 				sender.sendMessage(NetworkStatistic.statsList());
 				break;
+			case "list":
+				manager.displayBoosterQueue(p);
+				break;
 			case "view":
 				if (args.length != 2) {
-					p.sendMessage(ChatColor.RED + " Usage: /booster view " + ChatColor.RED + ChatColor.UNDERLINE + " <player>");
-					return false;
+					p.sendMessage(ChatColor.RED + " Usage: /booster view " + ChatColor.RED + " [player]");
+					break;
 				}
 
-				if (Bukkit.getPlayer(args[2]) == null) {
+				if (Bukkit.getPlayer(args[1]) == null) {
 					p.sendMessage(ChatColor.RED + " Error: that player isn't online.");
-					return false;
+					break;
 				}
-
-
-				manager.viewBoostersOfPlayer(Bukkit.getPlayer(args[2]), p);
+				manager.viewBoostersOfPlayer(Bukkit.getPlayer(args[1]), p);
 				break;
-			case "types":
+			case "help":
+				sendHelpMessage(p);
 				break;
-
 			default:
-				sender.sendMessage("create/remove/activate/give/give");
 				break;
 		}
 
 		return true;
+	}
+
+	public void sendHelpMessage(Player p) {
+		HashMap<String, String> commandHelp = new LinkedHashMap<>();
+
+		ChatColor RED = ChatColor.RED;
+		ChatColor WHITE = ChatColor.WHITE;
+		ChatColor BOLD = ChatColor.BOLD;
+
+		String title = RED + "────" + WHITE + "──────[" + RED + BOLD + "Booster Help" + WHITE + "]──────" + RED + "────";
+		String prefix = ChatColor.RED + "/bos" + ChatColor.WHITE + " ";
+
+		String create = "create" + WHITE + " ";
+		String createSuffix = "name statistic scope type";
+		String remove = "remove" + WHITE + " ";
+		String removeSuffix = "player name amount";
+		String queue = "queue" + WHITE + " ";
+		String queueSuffix = "player name";
+		String give = "give" + WHITE + " ";
+		String giveSuffix = "player name amount";
+		String list = "list" + WHITE + " ";
+		String view = "view" + WHITE + " ";
+		String viewSuffix = "player";
+		String stats = "stats" + WHITE + " ";
+		String help = "help" + WHITE + " ";
+
+		commandHelp.put(title, "");
+		commandHelp.put(prefix + create, createSuffix);
+		commandHelp.put(prefix + remove, removeSuffix);
+		commandHelp.put(prefix + queue, queueSuffix);
+		commandHelp.put(prefix + give, giveSuffix);
+		commandHelp.put(prefix + list, "");
+		commandHelp.put(prefix + view, viewSuffix);
+		commandHelp.put(prefix + stats, "");
+		commandHelp.put(prefix + help, "");
+
+
+		StringBuilder builder = new StringBuilder();
+		for (Map.Entry<String, String> stringedCommands : commandHelp.entrySet()) {
+			for (String s : stringedCommands.getValue().split(" ")) {
+				if (s.isEmpty() || s.equals(commandHelp.get(0))) continue;
+				builder.append("[" + RED + s + WHITE + "]").append(" ");
+			}
+			p.sendMessage(stringedCommands.getKey() + builder.append(" "));
+			builder = new StringBuilder();
+
+		}
+
 	}
 }

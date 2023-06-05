@@ -15,14 +15,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Notifier that sends global booster notifications via Discord.
+ */
 public class GlobalBoosterDiscordNotifier {
 
 	private final YamlConfiguration mainConfig = MainConfigDefaults.getMainSettings();
+	private final Random random = new Random();
 
 	public GlobalBoosterDiscordNotifier() {
 
 	}
 
+	/**
+	 * Sends a global discord message about a booster.
+	 *
+	 * @param booster the booster to notify about
+	 */
 	public void sendGlobalDiscordMessage(Booster<?> booster) {
 		ConfigurationSection section = MainConfigDefaults.getMainSettings().getConfigurationSection("discord");
 		String url = section.getString("webhook_url");
@@ -30,16 +39,18 @@ public class GlobalBoosterDiscordNotifier {
 		HashMap<String, Object> stringMutation = new HashMap<>();
 		stringMutation.put("{b_name}", booster.getBoosterName());
 		stringMutation.put("{p}", booster.getOfflinePlayer().getName());
+
 		if (booster.getBoosterType().getBoosterTypeName().equalsIgnoreCase(BoosterType.CUSTOM.getBoosterTypeName())) {
 			stringMutation.put("{b_amount}", booster.getBoostAmount() + "%");
 			stringMutation.put("{b_duration}", booster.getDurationInMinutes());
+
 		} else {
 			stringMutation.put("{b_amount}", booster.getBoosterType().getBoostIncreasePercentage() + "%");
 			stringMutation.put("{b_duration}", booster.getDurationInMinutes());
 		}
 		stringMutation.put("{b_type}", booster.getStatistic().getType());
 
-		//May need to change this section if you're thinking of sending more discord messages for different statuses. Fine for now.
+		//May need to change this section if you're thinking of sending more discord messages for different statuses.
 		boolean isBoosterActive = booster.getStatus().equals(Booster.Status.ACTIVE);
 		boolean isRandomActive = isBoosterActive ? mainConfig.getBoolean("discord.booster_activation.Random_Color") : mainConfig.getBoolean("discord.booster_deactivation.Random_Color");
 
@@ -55,7 +66,6 @@ public class GlobalBoosterDiscordNotifier {
 		int blue = isBoosterActive ? mainConfig.getInt("discord.booster_activation.Color.BLUE") : mainConfig.getInt("discord.booster_deactivation.Color.BLUE");
 
 		Color color = isRandomActive ? randomColor() : Color.fromARGB(alpha, red, green, blue);
-		//TODO Fix custom RGB Colors
 
 		DiscordWebhook.EmbedObject embedObject = new DiscordWebhook.EmbedObject()
 				.setColor(color)
@@ -66,6 +76,11 @@ public class GlobalBoosterDiscordNotifier {
 		BoosterManager.getInstance().sendDiscordMessage(url, booster, embedObject);
 	}
 
+	/**
+	 * Generates a random color using Reflection from Bukkit's {@link Color} class.
+	 *
+	 * @return a random color
+	 */
 	public Color randomColor() {
 		Field[] declaredFields = Color.class.getDeclaredFields();
 		List<Color> colors = new ArrayList<>();
@@ -79,7 +94,7 @@ public class GlobalBoosterDiscordNotifier {
 			}
 		}
 
-		return colors.get(new Random().nextInt(colors.size() - 1));
+		return colors.get(random.nextInt(colors.size() - 1));
 
 	}
 

@@ -3,8 +3,8 @@ version: '${project.version}'
 main: rankednetwork.Main
 api-version: 1.19
 commands:
-  booster:
+  bos:
     description: Commands to manage boosters
-    usage: /booster <create,remove,give,activate,stats>
+    usage: /booster help
     aliases:
-      - 'a'
+      - booster

@@ -3,11 +3,10 @@ package rankednetwork;
 import org.bukkit.plugin.java.JavaPlugin;
 import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
 import rankednetwork.NetworkLevelling.Commands.BoosterCommand;
-import rankednetwork.NetworkLevelling.Config.Config;
 import rankednetwork.NetworkLevelling.Config.MainConfigDefaults;
-import rankednetwork.NetworkLevelling.PlayerLevelManager;
-import rankednetwork.NetworkLevelling.PlayerLevellingEvents;
+import rankednetwork.NetworkLevelling.CustomerBoosterEventsTest;
 
+//Test server main class - can be ignored
 public final class Main extends JavaPlugin {
 
 	private static Main main;
@@ -20,10 +19,10 @@ public final class Main extends JavaPlugin {
 	public void onEnable() {
 		main = this;
 		new MainConfigDefaults();
-		getCommand("booster").setExecutor(new BoosterCommand());
+		getCommand("bos").setExecutor(new BoosterCommand());
 		BoosterManager.getInstance().initliazeStatisticsAvailableForBoosting();
 		BoosterManager.getInstance().checkBoostersRunnable();
-		getServer().getPluginManager().registerEvents(new PlayerLevellingEvents(), this);
+		getServer().getPluginManager().registerEvents(new CustomerBoosterEventsTest(), this);
 		BoosterManager.getInstance().loadBoosterQueue();
 
 	}
@@ -31,11 +30,6 @@ public final class Main extends JavaPlugin {
 	@Override
 	public void onDisable() {
 		BoosterManager.getInstance().saveBoosterQueues();
-
 	}
 
-	public void defaultPlayerLevelConfig() {
-		Config playerLevels = PlayerLevelManager.getInstance().getPlayerLevelsConf();
-
-	}
 }

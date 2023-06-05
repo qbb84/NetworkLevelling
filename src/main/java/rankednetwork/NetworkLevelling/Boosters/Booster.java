@@ -56,15 +56,17 @@ public class Booster<T extends NetworkStatistic> {
 	/**
 	 * Creates a Booster object from its serialized String representation.
 	 * The serialized Booster string is expected to contain the following comma-separated values in order:
-	 * 1. BoosterType name
-	 * 2. Maximum duration (in minutes)
-	 * 3. Player's name
-	 * 4. BoosterScope name
-	 * 5. Activation status (boolean)
-	 * 6. Activation time (in milliseconds since the epoch)
-	 * 7. Boost amount
-	 * 8. Booster name
-	 * 9. NetworkStatistic type
+	 * <ol>
+	 *     <li>BoosterType name</li>
+	 *     <li>Maximum duration (in minutes)</li>
+	 *     <li>Player's name</li>
+	 *     <li>BoosterScope name</li>
+	 *     <li>Activation status (boolean)</li>
+	 *     <li>Activation time (in milliseconds since the epoch)</li>
+	 *     <li>Boost amount</li>
+	 *     <li>Booster name</li>
+	 *     <li>NetworkStatistic type</li>
+	 * </ol>
 	 * <p>
 	 * This method is primarily used for loading Boosters from the Booster queue cache.
 	 *
@@ -79,16 +81,20 @@ public class Booster<T extends NetworkStatistic> {
 		String playerUUD = parts[3];
 		UUID uuid = UUID.fromString(playerUUD);
 		BoosterScope scope = BoosterScope.valueOf(parts[4].toUpperCase());
+
 		boolean isActive = Boolean.parseBoolean(parts[5]);
 		long activationTime = Long.parseLong(parts[6]);
 		double boostAmount = Double.parseDouble(parts[7]);
+
 		String boosterName = parts[8];
 		NetworkStatistic statistic = BoosterManager.getInstance().getStatisticFromName(uuid, parts[9]);
 		Booster<?> booster = new Booster<>(uuid, statistic, boosterType, scope, boosterName);
 		Status status = Status.valueOf(parts[10]);
+
 		booster.setDuration(maxDuration);
 		booster.setMultiplier(boostAmount);
 		booster.setStatus(status);
+
 		if (isActive) {
 			booster.activate();
 			booster.activationTime = activationTime;
@@ -124,6 +130,8 @@ public class Booster<T extends NetworkStatistic> {
 	public void activate() {
 		this.isActive = true;
 		this.activationTime = System.currentTimeMillis();
+		BoosterManager.getInstance().getTotalBoosters().add(this);
+		BoosterManager.getInstance().getActiveBoosters().add(this);
 		setStatus(Status.ACTIVE);
 	}
 
@@ -164,15 +172,18 @@ public class Booster<T extends NetworkStatistic> {
 	/**
 	 * Serializes this Booster object into a String representation.
 	 * The resulting string contains the following comma-separated values in order:
-	 * 1. BoosterType name
-	 * 2. Maximum duration (in minutes)
-	 * 3. Player's name
-	 * 4. BoosterScope name
-	 * 5. Activation status (boolean)
-	 * 6. Activation time (in milliseconds since the epoch)
-	 * 7. Boost amount
-	 * 8. Booster name
-	 * 9. NetworkStatistic type
+	 *
+	 * <ol>
+	 *     <li>BoosterType name</li>
+	 *     <li>Maximum duration (in minutes)</li>
+	 *     <li>Player's name</li>
+	 *     <li>BoosterScope name</li>
+	 *     <li>Activation status (boolean)</li>
+	 *     <li>Activation time (in milliseconds since the epoch)</li>
+	 *     <li>Boost amount</li>
+	 *     <li>Booster name</li>
+	 *     <li>NetworkStatistic type</li>
+	 * </ol>
 	 * <p>
 	 * This method is primarily used for saving Boosters to the Booster queue cache.
 	 *
@@ -189,8 +200,8 @@ public class Booster<T extends NetworkStatistic> {
 	 * Gets the booster type. See below for more info.
 	 *
 	 * @return
-	 * @see this#getBoostAmount() for the boost amount
-	 * @see this#getDuration() for duration
+	 * @see #getBoostAmount()
+	 * @see #getDuration()
 	 */
 	public BoosterType getBoosterType() {
 		return boosterType;
