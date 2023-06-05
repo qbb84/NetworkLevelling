@@ -36,14 +36,14 @@ public abstract class NetworkStatistic {
 	public static <T extends NetworkStatistic> void addStatistic(T t) {
 		BoosterMetadata className = t.getClass().getAnnotation(BoosterMetadata.class);
 		if (className.name() == "null") {
-			if (!NetworkStatistic.availableStats.contains(t.getClass().getSimpleName())) {
-				NetworkStatistic.availableStats.add(t.getClass().getSimpleName());
+			if (!availableStats.contains(t.getClass().getSimpleName())) {
+				availableStats.add(t.getClass().getSimpleName());
 
 			}
 			return;
 		}
-		if (!NetworkStatistic.availableStats.contains(className.name())) {
-			NetworkStatistic.availableStats.add(className.name());
+		if (!availableStats.contains(className.name())) {
+			availableStats.add(className.name());
 		}
 	}
 

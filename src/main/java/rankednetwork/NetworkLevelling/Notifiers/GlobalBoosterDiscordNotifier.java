@@ -39,9 +39,11 @@ public class GlobalBoosterDiscordNotifier {
 		HashMap<String, Object> stringMutation = new HashMap<>();
 		stringMutation.put("{b_name}", booster.getBoosterName());
 		stringMutation.put("{p}", booster.getOfflinePlayer().getName());
+
 		if (booster.getBoosterType().getBoosterTypeName().equalsIgnoreCase(BoosterType.CUSTOM.getBoosterTypeName())) {
 			stringMutation.put("{b_amount}", booster.getBoostAmount() + "%");
 			stringMutation.put("{b_duration}", booster.getDurationInMinutes());
+			
 		} else {
 			stringMutation.put("{b_amount}", booster.getBoosterType().getBoostIncreasePercentage() + "%");
 			stringMutation.put("{b_duration}", booster.getDurationInMinutes());

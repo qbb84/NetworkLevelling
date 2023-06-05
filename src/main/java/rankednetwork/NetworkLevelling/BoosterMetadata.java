@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
 public @interface BoosterMetadata {
 
 	/**
-	 * Defines the name of the booster.
+	 * Defines the name of the statistic the booster is for.
 	 * The default value is "null".
 	 *
 	 * @return the name of the booster

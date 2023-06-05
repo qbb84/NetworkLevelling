@@ -27,7 +27,7 @@ import java.util.UUID;
 
 /**
  * The CustomerBoosterEventsTest class implements Listener and defines all the events associated with the player levelling.
- * This includes player joining, booster activation, expiration, queuing, player level up and experience change events.
+ * This includes player joining, and custom events: booster activation, expiration, queuing, player level up and experience change events.
  *
  * @author Rewind
  * @version 0.5

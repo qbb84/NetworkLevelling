@@ -178,7 +178,6 @@ public class BoosterCommand implements CommandExecutor {
 	public void sendHelpMessage(Player p) {
 		HashMap<String, String> commandHelp = new LinkedHashMap<>();
 
-
 		ChatColor RED = ChatColor.RED;
 		ChatColor WHITE = ChatColor.WHITE;
 		ChatColor BOLD = ChatColor.BOLD;
