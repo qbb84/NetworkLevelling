@@ -26,14 +26,14 @@ import java.util.Random;
 import java.util.UUID;
 
 /**
- * The PlayerLevellingEvents class implements Listener and defines all the events associated with the player levelling.
+ * The CustomerBoosterEventsTest class implements Listener and defines all the events associated with the player levelling.
  * This includes player joining, booster activation, expiration, queuing, player level up and experience change events.
  *
  * @author Rewind
  * @version 0.5
  * @since 2023-06-01
  */
-public class PlayerLevellingEvents implements Listener {
+public class CustomerBoosterEventsTest implements Listener {
 
 	private final HashMap<String, Object> configMap = new HashMap<>();
 

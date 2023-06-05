@@ -5,8 +5,8 @@ import rankednetwork.NetworkLevelling.Boosters.BoosterManager;
 import rankednetwork.NetworkLevelling.Commands.BoosterCommand;
 import rankednetwork.NetworkLevelling.Config.Config;
 import rankednetwork.NetworkLevelling.Config.MainConfigDefaults;
+import rankednetwork.NetworkLevelling.CustomerBoosterEventsTest;
 import rankednetwork.NetworkLevelling.PlayerLevelManager;
-import rankednetwork.NetworkLevelling.PlayerLevellingEvents;
 
 public final class Main extends JavaPlugin {
 
@@ -24,7 +24,7 @@ public final class Main extends JavaPlugin {
 		getCommand("bos").setExecutor(new BoosterCommand());
 		BoosterManager.getInstance().initliazeStatisticsAvailableForBoosting();
 		BoosterManager.getInstance().checkBoostersRunnable();
-		getServer().getPluginManager().registerEvents(new PlayerLevellingEvents(), this);
+		getServer().getPluginManager().registerEvents(new CustomerBoosterEventsTest(), this);
 		BoosterManager.getInstance().loadBoosterQueue();
 
 	}
